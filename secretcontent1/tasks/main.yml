@@ -1,0 +1,7 @@
+---
+- include_vars: text.yml
+
+- name: Copy the content in the server securely
+  ansible.builtin.copy:
+    content: "{{ my_content }}"
+    dest: /tmp/mycontent.txt

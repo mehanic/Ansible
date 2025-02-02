@@ -1,0 +1,10 @@
+---
+- ansible.builtin.include_vars:
+    file: harden.yml
+
+- name: Configure System Ctrl.
+  ansible.builtin.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+  with_items: "{{ harden }}"

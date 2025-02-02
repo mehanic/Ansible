@@ -1,0 +1,8 @@
+---
+- name: Installing SELinux package
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - libselinux-python
+  when: ansible_os_family == 'RedHat'

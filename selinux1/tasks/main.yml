@@ -1,0 +1,16 @@
+---
+  - include: install.yml
+
+  - name: Setting up the SELinux policy and state
+    ansible.builtin.selinux:
+      policy: "{{ selinuxpolicy }}"
+      state: "{{ selinuxstate }}"
+    when: ansible_os_family == 'RedHat'
+
+  - name: sestatus
+    ansible.builtin.command: sestatus
+    register: out
+    
+  - name: Debug output
+    ansible.builtin.debug:
+      var: out.stdout_lines

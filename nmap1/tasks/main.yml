@@ -1,0 +1,21 @@
+---
+- include_vars: ip.yml
+
+- name: NMAP Installation
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - nmap
+
+- name: Copy the content in the server securely
+  ansible.builtin.copy:
+    content: "{{ ip_addr }}"
+    dest: /opt/ip.txt
+
+- name: Scan a network and find out which servers are up and running
+  ansible.builtin.cron:
+    name: "Nmap Scan"
+    minute: "0"
+    hour: "0"
+    job: "nmap -v  {{ nmap_variable | default('-sP') }} -iL /opt/ip.txt > /var/log/nmap-tcp.log  2>&1"

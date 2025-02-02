@@ -1,0 +1,71 @@
+---
+- name: Load the variables
+  ansible.builtin.include_vars: debian-ufw.yml
+
+- name: NGINX | Installing NGINX
+  ansible.builtin.yum:
+    name: nginx
+    state: latest
+
+- name: NGINX | Starting NGINX
+  ansible.builtin.service:
+    name: nginx
+    state: started
+
+- name: Determine if selinux is enabled
+  ansible.builtin.command:
+    cmd: getenforce
+  register: getenforce
+  ignore_errors: true
+  changed_when: false
+
+- name: Open up permissions on httpd.
+  ansible.builtin.seboolean:
+    name: '{{ item }}'
+    persistent: yes
+    state: 'true'
+  when: getenforce|success and getenforce.stdout.lower() != "disabled"
+  with_items:
+    - httpd_can_network_connect
+
+- name: create self signed SSL certificates
+  ansible.builtin.command:
+    cmd: openssl req -x509 -nodes -sha256 -days 99999 -newkey rsa:2048 -keyout /etc/certs/server.key -out /etc/certs/server.cert -subj "/C=US/ST=NC/L=youtube/O=8gwifi/CN=zariga.com"
+  args:
+    creates: /etc/certs/server.cert
+  notify:
+    - restart nginx
+
+- name: Configure file permissions on certificate file.
+  ansible.builtin.file:
+    group: '{{ nginx_group }}'
+    mode: '0600'
+    path: /etc/certs/server.cert
+    owner: '{{ nginx_user }}'
+  notify:
+    - restart nginx
+
+- name: Configure file permissions on key file.
+  ansible.builtin.file:
+    group: '{{ nginx_group }}'
+    mode: '0600'
+    path: /etc/certs/server.key
+    owner: '{{ nginx_user }}'
+  notify:
+    - restart nginx
+
+- name: Install Tower nginx.conf
+  ansible.builtin.template:
+    src: nginx.conf
+    dest: '/etc/nginx/nginx.conf'
+    force: true
+    owner: root
+    group: root
+  notify:
+    - restart nginx
+
+- name: start nginx and configure to startup automatically
+  ansible.builtin.service:
+    name: '{{ nginx_init_name }}'
+    state: started
+    enabled: yes

@@ -1,0 +1,36 @@
+---
+- include_vars: users.yml
+
+- name: Create users with home directory
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    shell: /bin/bash
+    create_home: yes
+    comment: 'Created by Ansible'
+  loop: "{{ users }}"
+
+- name: Setup | authorized key upload
+  ansible.builtin.authorized_key:
+    user: "{{ item.username }}"
+    key: "{{ lookup('file', 'files/{{ item.username }}.pub') }}"
+  when: "{{ item.use_sudo }} == True"
+  loop: "{{ users }}"
+
+- name: Sudoers | update sudoers file and validate
+  ansible.builtin.lineinfile:
+    dest: /etc/sudoers
+    insertafter: EOF
+    line: "{{ item.username }} ALL=(ALL) NOPASSWD: ALL"
+    regexp: "^{{ item.username }} .*"
+    state: present
+  when: "{{ item.use_sudo }} == True"
+  loop: "{{ users }}"
+
+- include_vars: deleteusers.yml
+
+- name: Deleting The users
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    state: absent
+    remove: yes
+  loop: "{{ users }}"

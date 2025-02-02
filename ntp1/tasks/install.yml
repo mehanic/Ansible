@@ -1,0 +1,17 @@
+---
+- name: Installing NTP APT package
+  ansible.builtin.package:
+    name: '{{ item }}'
+    state: present
+  loop:
+    - ntp
+  when: ansible_os_family == 'Debian'
+
+
+- name: Installing yum ntp package
+  ansible.builtin.package:
+    name: '{{ item }}'
+    state: present
+  loop:
+    - ntp
+  when: ansible_os_family == 'RedHat'
