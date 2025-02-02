@@ -1,0 +1,21 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: "SHA1 hash of a string 'test1'"
+      ansible.builtin.debug:
+        msg: "{{ 'test1' | hash('sha1') }}"
+
+    - name: "MD5 hash of a string 'test1'"
+      ansible.builtin.debug:
+        msg: "{{ 'test1' | hash('md5') }}"
+
+    - name: "Checksum of a string 'test2'"
+      ansible.builtin.debug:
+        msg: "{{ 'test2' | checksum }}"
+
+    - name: "SHA512 password hash (random salt)"
+      ansible.builtin.debug:
+        msg: "{{ 'passwordsaresecret' | password_hash('sha512') }}"

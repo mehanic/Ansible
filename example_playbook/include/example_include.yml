@@ -1,0 +1,14 @@
+---
+- name: Example of including a play and a task
+  hosts: localhost
+
+  tasks:
+    - name: main task
+      ansible.builtin.debug:
+        msg: "It is a main task"
+          
+    - ansible.builtin.import_tasks:
+        file: tasks/child_task.yml
+
+- ansible.builtin.import_playbook:
+    file: child_play.yml

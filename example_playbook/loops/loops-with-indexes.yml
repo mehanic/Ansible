@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+
+  tasks:
+    - ansible.builtin.debug:
+        msg: "{{ item.1 }} at position {{ item.0 }}"
+      loop:
+        - "apple"
+        - "pear"
+        - "banana"
+        - "kiwi"
+      loop_control:
+        index_var: item

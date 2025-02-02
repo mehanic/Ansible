@@ -1,0 +1,16 @@
+---
+- hosts: localhost
+  connection: local
+
+  vars:
+    myvar1: "asdfasdfasdfAAAasdfasdfasdf"
+    myvar2: "qweqwerqweqweqqweqweqweqweq"
+
+  tasks:
+    - name: "Variable contains 'AAA' -> '{{ item }}'"
+      ansible.builtin.debug:
+        msg: "Variable contains 'AAA' -> '{{ item }}'"
+      when: "'AAA' in item"
+      loop:
+        - "{{ myvar1 }}"
+        - "{{ myvar2 }}"

@@ -1,0 +1,71 @@
+---
+- name: Setting local facts
+  hosts: localhost
+
+  tasks:
+    - name: Ensure directory for ansible facts exists
+      ansible.builtin.file:
+        state: directory
+        recurse: yes
+        path: /etc/ansible/facts.d
+      become: true
+      become_user: root
+
+    - name: Ensure INI example fact exists
+      ansible.builtin.copy:
+        src: ini_example.fact
+        dest: /etc/ansible/facts.d
+      become: true
+      become_user: root
+
+    - name: Ensure JSON example fact exists
+      ansible.builtin.copy:
+        src: json_example.fact
+        dest: /etc/ansible/facts.d
+      become: true
+      become_user: root
+
+    - name: Ensure EXECUTABLE example fact exists
+      ansible.builtin.copy:
+        src: exec_java.fact
+        dest: /etc/ansible/facts.d
+        mode: "a+x"
+      become: true
+      become_user: root
+
+---
+- name: Getting local fact
+  hosts: localhost
+
+  tasks:
+    - name: Display variable from INI file
+      ansible.builtin.debug:
+        msg: "foo = {{ ansible_local.ini_example.general.foo }}"
+
+    - name: Display variable from JSON file
+      ansible.builtin.debug:
+        msg: "Apache version = {{ ansible_local.json_example.software.apache.version }}"
+
+    - name: Display variable from executable script
+      ansible.builtin.debug:
+        msg: "java = {{ ansible_local.exec_java.java_version }}"
+
+
+#ansible localhost -m setup -a 'filter=ansible_*_mb'
+
+# ```sh
+# [general]
+# foo=1
+# bar=2
+# ```
+# Put `ini_example.fact` to the `/etc/ansible/facts.d` directory.
+
+
+# ansible localhost -m setup -a 'filter=ansible_local'
+
+# Put `json_example.fact` to the `/etc/ansible/facts.d` directory.
+
+
+
+# ansible localhost -m setup -a 'filter=ansible_local'
+

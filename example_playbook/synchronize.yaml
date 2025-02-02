@@ -1,0 +1,13 @@
+---
+- name: Copy many files
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Update web document root
+      ansible.builtin.synchronize:
+        src: webfiles/
+        dest: /var/www/html
+        mode: push  # Push files from local to remote (use mode: pull for remote to local)
+        recursive: yes  # Copy directories recursively if needed
+        delete: yes  # Optionally, delete files on the remote that are not in the source directory

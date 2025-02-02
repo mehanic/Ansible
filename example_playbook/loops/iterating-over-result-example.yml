@@ -1,0 +1,12 @@
+---
+- name: Iterating Over The Results of a Program Execution Example
+  hosts: localhost
+
+  tasks:
+    - name: Show result of 'cat files/third_file' row by row
+      ansible.builtin.shell: "echo {{ item }}"
+      register: result
+      loop: "{{ lookup('file', 'files/third_file').splitlines() }}"
+    
+    - ansible.builtin.debug:
+        var: result

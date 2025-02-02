@@ -1,0 +1,56 @@
+---
+- name: Set up hosts that have an sdb device
+  hosts: all
+  tasks:
+    - name: Getting out with a nice failure message if there is no second disk
+      ansible.builtin.fail:
+        msg: "There is no second disk"
+      when: ansible_facts['devices']['sdb'] is not defined
+
+    - name: Create a partition
+      ansible.builtin.parted:
+        device: /dev/sdb
+        number: 1
+        state: present
+
+    - name: Create a volume group
+      community.general.lvg:
+        pvs: /dev/sdb1
+        vg: vgfiles
+
+    - name: Run the setup module so that we can use updated facts
+      ansible.builtin.setup:
+
+    - name: Get VG size and convert to integer in new variable
+      ansible.builtin.set_fact:
+        vgsize: "{{ ansible_facts['lvm']['vgs']['vgfiles']['size_g'] | int }}"
+
+    - name: Show vgsize value
+      ansible.builtin.debug:
+        var: vgsize
+
+    - name: Create an LVM on big volume groups
+      ansible.builtin.lvol:
+        vg: vgfiles
+        lv: lvfiles
+        size: 6g
+      when: vgsize > 5
+
+    - name: Create an LVM on small volume groups
+      ansible.builtin.lvol:
+        vg: vgfiles
+        lv: lvfiles
+        size: 3g
+      when: vgsize <= 5
+
+    - name: Format the XFS filesystem
+      ansible.builtin.filesystem:
+        dev: /dev/vgfiles/lvfiles
+        fstype: xfs
+
+    - name: Mount /dev/vgfiles/lvfiles
+      ansible.builtin.mount:
+        path: /files
+        state: mounted
+        src: /dev/vgfiles/lvfiles
+        fstype: xfs

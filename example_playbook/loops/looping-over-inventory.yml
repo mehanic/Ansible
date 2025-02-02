@@ -1,0 +1,27 @@
+---
+- hosts: localhost
+
+  tasks:
+    # Show all the hosts in the inventory
+    - name: Show all hosts in the inventory
+      ansible.builtin.debug:
+        msg: "{{ item }}"
+      loop: "{{ groups['all'] }}"
+
+    # Show all the hosts in the current play
+    - name: Show all hosts in the current play
+      ansible.builtin.debug:
+        msg: "{{ item }}"
+      loop: "{{ play_hosts }}"
+  
+    # Show all the hosts in the inventory
+    - name: Show all hosts matching the pattern
+      ansible.builtin.debug:
+        msg: "{{ item }}"
+      loop: "{{ query('inventory_hostnames', 'all') }}"
+
+    # Show all the hosts matching the pattern, i.e., all but the group 'www'
+    - name: Show all hosts matching pattern excluding group 'www'
+      ansible.builtin.debug:
+        msg: "{{ item }}"
+      loop: "{{ query('inventory_hostnames', 'all:!www') }}"

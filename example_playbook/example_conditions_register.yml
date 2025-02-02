@@ -1,0 +1,19 @@
+---
+- name: Check registered variable for emptiness
+  hosts: localhost
+
+  tasks:
+    - name: Ensure directory exists
+      ansible.builtin.file:
+        path: mydir
+        state: directory
+        mode: '0755'
+  
+    - name: List contents of directory
+      ansible.builtin.command: ls mydir
+      register: contents
+
+    - name: Check contents for emptiness
+      ansible.builtin.debug:
+        msg: "Directory is empty"
+      when: contents.stdout == ""

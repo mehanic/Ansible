@@ -1,0 +1,16 @@
+---
+- name: Combining when with loop
+  hosts: localhost
+
+  tasks:
+    - name: statement WHEN is processed separately for each item
+      ansible.builtin.debug:
+        msg: "{{ item }} is > 5"
+      loop: 
+        - 0
+        - 2
+        - 4
+        - 6
+        - 8
+        - 10
+      when: item > 5

@@ -1,0 +1,43 @@
+---
+- name: Examples Of Using Standard and Custom Modules
+  hosts: localhost
+
+  tasks:
+    - name: Using simple shell command with command module
+      ansible.builtin.command:
+        cmd: echo "Hello_world"
+      register: result
+
+    - name: Show output from command module
+      ansible.builtin.debug:
+        var: result
+
+    - name: Using python module with ansible.builtin.pip
+      ansible.builtin.pip:
+        name: requests
+      register: result
+
+    - name: Show output from pip install
+      ansible.builtin.debug:
+        var: result
+
+    - name: Using file module for directory creation with permissions
+      ansible.builtin.file:
+        path: /tmp/example_directory
+        state: directory
+        owner: vagrant
+        mode: '0755'
+        recurse: yes
+      register: result
+
+    - name: Show output from file module
+      ansible.builtin.debug:
+        var: result
+
+    - name: Setting a custom fact in ansible
+      ansible.builtin.set_fact:
+        myfact: myvalue
+
+    - name: Show custom fact
+      ansible.builtin.debug:
+        var: myfact

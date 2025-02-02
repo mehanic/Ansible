@@ -1,0 +1,78 @@
+---
+- name: Add host to inventory
+  hosts: localhost
+  tasks:
+    - name: Fail if newhost or newhostip are not defined
+      ansible.builtin.fail:
+        msg: "add the options -e newhost=hostname -e newhostip=ip.ad.dr.ess and try again"
+      when: (newhost is undefined) or (newhostip is undefined)
+
+    - name: Add new host to inventory
+      ansible.builtin.lineinfile:
+        path: inventory
+        state: present
+        line: "{{ newhost }}"
+
+    - name: Add new host to /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        state: present
+        line: "{{ newhostip }} {{ newhost }}"
+  tags: addhost
+
+- name: Configure a new RHEL host
+  hosts: "{{ newhost }}"
+  remote_user: root
+  become: false
+  tasks:
+    - name: Configure user ansible
+      ansible.builtin.user:
+        name: ansible
+        groups: wheel
+        append: yes
+        state: present
+
+    - name: Set a password for the user ansible
+      ansible.builtin.shell: 'echo password | passwd --stdin ansible'
+
+    - name: Enable sudo without passwords
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers
+        regexp: '^%wheel'
+        line: '%wheel ALL=(ALL)  NOPASSWD: ALL'
+        validate: /usr/sbin/visudo -cf %s
+
+    - name: Create SSH directory in user ansible's home
+      ansible.builtin.file:
+        path: /home/ansible/.ssh
+        state: directory
+        owner: ansible
+        group: ansible
+
+    - name: Copy SSH public key to remote host
+      ansible.builtin.copy:
+        src: /home/ansible/.ssh/id_rsa.pub
+        dest: /home/ansible/.ssh/authorized_keys
+        owner: ansible
+        group: ansible
+  tags: setuphost
+
+- name: Use subscription manager to register and set up repos
+  hosts: "{{ newhost }}"
+  vars_files:
+    - exercise123-vault.yaml
+  tasks:
+    - name: Register and subscribe {{ newhost }}
+      ansible.builtin.redhat_subscription:
+        username: "{{ rhsm_user }}"
+        password: "{{ rhsm_password }}"
+        state: present
+
+    - name: Configure additional repo access
+      ansible.builtin.rhsm_repository:
+        name:
+          - rh-gluster-3-client-for-rhel-8-x86_64-rpms
+          - rhel-8-for-x86_64-appstream-debug-rpms
+        state: present
+  tags: registerhost
+

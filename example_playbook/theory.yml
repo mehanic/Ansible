@@ -1,0 +1,26 @@
+---
+- hosts: localhost
+  connection: local
+  vars:
+    list1: [1, 2, 1, 3, 1]
+    list2: [4, 5, 4, 6, 1]
+  tasks:
+    - name: "A unique set from list1 [1,2,1,3,1]"
+      ansible.builtin.debug:
+        msg: "{{ list1 | unique }}"
+
+    - name: "A union of list1 [1,2,1,3,1] and list2 [4,5,4,6,1]"
+      ansible.builtin.debug:
+        msg: "{{ list1 | union(list2) }}"
+
+    - name: "An intersection of list1 [1,2,1,3,1] and list2 [4,5,4,6,1]"
+      ansible.builtin.debug:
+        msg: "{{ list1 | intersect(list2) }}"
+
+    - name: "A difference between list1 [1,2,1,3,1] and list2 [4,5,4,6,1]"
+      ansible.builtin.debug:
+        msg: "{{ list1 | difference(list2) }}"
+
+    - name: "A symmetric difference between list1 [1,2,1,3,1] and list2 [4,5,4,6,1]"
+      ansible.builtin.debug:
+        msg: "{{ list1 | symmetric_difference(list2) }}"

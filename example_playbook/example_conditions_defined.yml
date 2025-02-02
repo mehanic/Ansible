@@ -1,0 +1,17 @@
+---
+- name: Check registered variable for emptiness
+  hosts: localhost
+
+  vars:
+    foo: power
+  tasks:
+
+    - name: Debug message when foo is defined
+      ansible.builtin.debug:
+        msg: "I've got a '{{ foo }}' and am not afraid to use it!"
+      when: foo is defined
+
+    - name: Fail if bar is undefined
+      ansible.builtin.fail:
+        msg: "Bailing out. this play requires 'bar'"
+      when: bar is undefined

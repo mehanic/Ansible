@@ -1,0 +1,21 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: Read contents of the YAML file
+      ansible.builtin.shell: cat filters/formatting.yml
+      register: result
+
+    - name: Convert shell output to YAML
+      ansible.builtin.set_fact:
+        from_yaml: "{{ result.stdout | from_yaml }}"
+
+    - name: Shell output of the current playbook
+      ansible.builtin.debug:
+        var: result.stdout
+
+    - name: YAML-formatted output of the current playbook
+      ansible.builtin.debug:
+        var: from_yaml

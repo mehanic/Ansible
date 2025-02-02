@@ -1,0 +1,22 @@
+---
+- hosts: localhost
+  connection: local
+  vars:
+    ip1: '192.168.0.1'
+    ip2: '192.168.257.1'
+  tasks:
+    - name: "Test if a string '192.168.0.1' is a valid IP address"
+      ansible.builtin.debug:
+        msg: "{{ ip1 | ipaddr('address') }}"
+
+    - name: "Test if a string '192.168.257.1' is a valid IP address"
+      ansible.builtin.debug:
+        msg: "{{ ip2 | ipaddr('address') | default('Invalid IP Address') }}"
+
+    - name: "Test if a string '192.168.0.1' is a valid IPv6 address"
+      ansible.builtin.debug:
+        msg: "{{ ip1 | ipv6 | default('Invalid IPv6 Address') }}"
+
+    - name: "Get the IP address itself from a CIDR '192.0.2.1/24'"
+      ansible.builtin.debug:
+        msg: "{{ '192.0.2.1/24' | ipaddr('address') }}"

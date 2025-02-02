@@ -1,0 +1,9 @@
+---
+- hosts: localhost
+
+  tasks:
+    - ansible.builtin.debug:
+        msg: "User {{ item.name }} will be added to group {{ item.groups }}"
+      loop:
+        - { name: 'alice', groups: 'wheel' }
+        - { name: 'bob', groups: 'root' }

@@ -1,0 +1,24 @@
+---
+- name: Statement based on the result of registering
+  hosts: localhost
+  
+  tasks:
+  - name: Echo something
+    ansible.builtin.debug:
+      msg: "Hello world!"
+    register: result
+
+  - name: Do it if the result of the first step was failed
+    ansible.builtin.debug:
+      msg: "Ooops.."
+    when: result.failed
+
+  - name: Do it if the result of the first step was succeeded
+    ansible.builtin.debug:
+      msg: "Everything is OK"
+    when: result.succeeded
+
+  - name: Do it if the result of the first step was skipped
+    ansible.builtin.debug:
+      msg: "Goodbye"
+    when: result.skipped

@@ -1,0 +1,6 @@
+---
+- hosts: localhost
+
+  tasks:
+    - ansible.builtin.debug:
+        msg: "{{ ['go through the door', 'drink from the goblet', 'press the red button', 'do nothing'] | random }}"

@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+
+  tasks:
+    - ansible.builtin.debug:
+        var: item
+      loop:
+        - "one"
+        - "two"
+      register: looprg
+
+    - ansible.builtin.debug:
+        var: looprg

@@ -1,0 +1,8 @@
+---
+- name: Demonstrate filters
+  hosts: localhost
+  tasks:
+    - name: Manipulate a list and check
+      ansible.builtin.assert:
+        that:
+          - "{{ [2, 3, 1, 2, 4, 2] | sort | unique | list }} == [1, 2, 3, 4]"

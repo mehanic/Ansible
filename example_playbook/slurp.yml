@@ -1,0 +1,29 @@
+---
+- hosts: localhost
+  gather_facts: no
+
+  tasks:
+    - name: Copy the token file
+      ansible.builtin.copy:
+        content: |
+          token: "123456789.abcdef"
+          something_else: "abc_abc_def_def"
+        dest: /tmp/token
+
+    - name: Slurp the content of the token file
+      ansible.builtin.slurp:
+        src: /tmp/token
+      register: vars_from_file
+
+    - name: Set facts from the slurped content
+      ansible.builtin.set_fact:
+        "{{ item.key }}={{ item.value }}"
+      loop: "{{ (vars_from_file['content'] | b64decode | from_yaml).items() }}"
+
+    - name: Debug the token value
+      ansible.builtin.debug:
+        var: token
+
+    - name: Debug the something_else value
+      ansible.builtin.debug:
+        var: something_else

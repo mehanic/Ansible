@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  connection: local
+  vars:
+    list: [1, 2, 3, 4, 5]
+  tasks:
+    - name: "Min value of the list [1,2,3,4,5]"
+      ansible.builtin.debug:
+        msg: "{{ list | min }}"
+
+    - name: "Max value of the list [1,2,3,4,5]"
+      ansible.builtin.debug:
+        msg: "{{ list | max }}"
+
+    - name: "Random list from the list [1,2,3,4,5]"
+      ansible.builtin.debug:
+        msg: "{{ list | shuffle }}"

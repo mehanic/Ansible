@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  connection: local
+  vars:
+    myvar: 4
+  tasks:
+    - name: "The power of 4"
+      ansible.builtin.debug:
+        msg: "{{ myvar ** 2 }}"  # Using exponentiation operator for power of 2
+
+    - name: "The square root of 4"
+      ansible.builtin.debug:
+        msg: "{{ myvar ** 0.5 }}"  # Using exponentiation operator for square root

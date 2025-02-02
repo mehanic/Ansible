@@ -1,0 +1,14 @@
+---
+- name: Looping over Integer Sequences Example 
+  hosts: localhost
+
+  tasks:
+    - name: Print even numbers from 0 to 10 in format "number-X"
+      ansible.builtin.debug: 
+        msg: "number-{{ item }}"
+      loop: "{{ range(0, 16, 2) }}"
+
+    - name: Print numbers from 1 to 3
+      ansible.builtin.debug: 
+        msg: "{{ item }}"
+      loop: "{{ range(1, 4) }}"
