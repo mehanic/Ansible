@@ -1,0 +1,11 @@
+---
+# Status checking 
+- name: 'Role integration tests'
+  ansible.builtin.command: systemctl status supervisord.service 
+  register: output
+
+# When version fails
+- name: Fail the playbook if supervisor is not running
+  ansible.builtin.fail:
+    msg: 'Installation failed'
+  when: "'supervisor' not in output.stdout"

@@ -1,0 +1,29 @@
+---
+# This playbook will install mysql and create db user and give permissions.
+
+- name: Configure host name
+  ansible.builtin.command:
+    cmd: hostname -f
+
+- name: Run the equivalent of "apt-get update" as a separate step
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Get the MySQL APT configuration package
+  ansible.builtin.get_url:
+    url: https://dev.mysql.com/get/mysql-apt-config_0.8.1-1_all.deb
+    dest: /opt/mysql-apt-config_0.6.0-1_all.deb
+
+- name: Install MySQL APT configuration package
+  ansible.builtin.apt:
+    deb: /opt/mysql-apt-config_0.6.0-1_all.deb
+
+- name: Install MySQL server
+  ansible.builtin.apt:
+    name: mysql-server
+    state: latest
+
+- name: Start MySQL service
+  ansible.builtin.service:
+    name: mysql
+    state: started

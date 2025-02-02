@@ -1,0 +1,35 @@
+---
+# This playbook will install MySQL, create a DB user, and grant permissions.
+
+- name: Configure host name
+  ansible.builtin.command:
+    cmd: hostname -f
+
+- name: Updating yum
+  ansible.builtin.yum:
+    name: "*"
+    state: installed
+
+- name: Install wget
+  ansible.builtin.yum:
+    name: wget
+    state: installed
+
+- name: Get the package
+  ansible.builtin.command:
+    cmd: wget {{ amazonmysql }}
+
+- name: Install package from RPM
+  ansible.builtin.yum:
+    name: '{{ amazonrpm }}'
+    state: present
+
+- name: Install mysql-server
+  ansible.builtin.yum:
+    name: mysql-server
+    state: present
+
+- name: Start mysql service
+  ansible.builtin.service:
+    name: mysqld
+    state: started

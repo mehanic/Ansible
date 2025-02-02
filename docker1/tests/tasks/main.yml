@@ -1,0 +1,18 @@
+---
+- name: Verify Docker Installation
+  hosts: all
+  become: true
+
+  tasks:
+    # Check Docker version
+    - name: Check the installed Docker version
+      ansible.builtin.command: docker -v
+      register: docker_version
+      changed_when: false
+      ignore_errors: true  # Prevents playbook failure if Docker is not installed
+
+    # Fail if Docker is not installed
+    - name: Fail if Docker installation failed
+      ansible.builtin.fail:
+        msg: "Docker installation failed!"
+      when: docker_version.rc != 0

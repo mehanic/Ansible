@@ -1,0 +1,13 @@
+---
+- name: Install Docker based on OS
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Include Ubuntu-specific tasks
+      ansible.builtin.import_tasks: ubuntu.yml
+      when: ansible_os_family == "Debian"
+
+    - name: Include RedHat-specific tasks
+      ansible.builtin.import_tasks: redhat.yml
+      when: ansible_os_family == "RedHat"

@@ -1,0 +1,68 @@
+---
+- name: Install Docker on Linux
+  hosts: all
+  become: true
+  vars:
+    python_setuptools_url: "https://files.pythonhosted.org/packages/source/s/setuptools/setuptools-65.5.0.tar.gz"
+    repo_url: "https://download.docker.com/linux/centos/docker-ce.repo"
+    docker_rpm: "docker-ce"
+
+  tasks:
+    - name: Install required dependencies
+      ansible.builtin.yum:
+        name:
+          - python3
+          - python3-pip
+          - tar
+          - dnf-plugins-core
+        state: present
+
+    - name: Download python-setuptools
+      ansible.builtin.get_url:
+        url: "{{ python_setuptools_url }}"
+        dest: "/tmp/setuptools.tar.gz"
+
+    - name: Extract setuptools archive
+      ansible.builtin.unarchive:
+        src: "/tmp/setuptools.tar.gz"
+        dest: "/opt/"
+        remote_src: true
+
+    - name: Install python-setuptools
+      ansible.builtin.yum:
+        name: "python3-setuptools"
+        state: present
+
+    - name: Add Docker repository
+      ansible.builtin.yum_repository:
+        name: docker-ce
+        description: Docker CE Repository
+        baseurl: "{{ repo_url }}"
+        gpgcheck: yes
+        enabled: yes
+
+    - name: Install Docker
+      ansible.builtin.yum:
+        name: "{{ docker_rpm }}"
+        state: latest
+
+    - name: Start and enable Docker service
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Add current user to the Docker group
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Verify Docker installation
+      ansible.builtin.command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Display Docker version
+      ansible.builtin.debug:
+        msg: "Installed {{ docker_version.stdout }}"

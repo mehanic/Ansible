@@ -1,0 +1,115 @@
+---
+- name: Install Java 1.7 and some basic dependencies
+  hosts: all
+  remote_user: ec2-user
+  become: true
+  become_user: root
+  vars:
+    http_port: 8080
+    https_port: 8443
+  tasks:
+    - name: Install basic dependencies
+      ansible.builtin.yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - unzip
+        - java-1.7.0-openjdk
+        - libselinux-python
+        - libsemanage-python
+
+    - name: Download JBoss from jboss.org
+      ansible.builtin.get_url:
+        url: "http://download.jboss.org/jbossas/7.1/jboss-as-7.1.1.Final/jboss-as-7.1.1.Final.zip"
+        dest: /opt/jboss-as-7.1.1.Final.zip
+
+    - name: Extract JBoss archive
+      ansible.builtin.unarchive:
+        src: /opt/jboss-as-7.1.1.Final.zip
+        dest: /usr/share
+        creates: /usr/share/jboss-as
+        copy: no
+
+    - name: Rename install directory
+      ansible.builtin.command:
+        cmd: /bin/mv /usr/share/jboss-as-7.1.1.Final /usr/share/jboss-as
+      creates: /usr/share/jboss-as
+
+    - name: Copying standalone.xml configuration file
+      ansible.builtin.template:
+        src: standalone.xml
+        dest: /usr/share/jboss-as/standalone/configuration/
+      notify:
+        - restart jboss
+
+    - name: Add group "jboss"
+      ansible.builtin.group:
+        name: jboss
+
+    - name: Add user "jboss"
+      ansible.builtin.user:
+        name: jboss
+        group: jboss
+        home: /usr/share/jboss-as
+
+    - name: Change ownership of JBoss installation
+      ansible.builtin.file:
+        path: /usr/share/jboss-as/
+        owner: jboss
+        group: jboss
+        state: directory
+        recurse: yes
+
+    - name: Copy the init script
+      ansible.builtin.copy:
+        src: jboss-amazon-standalone.sh
+        dest: /etc/init.d/jboss
+        mode: '0755'
+
+    - name: Enable JBoss to be started at boot
+      ansible.builtin.service:
+        name: jboss
+        enabled: yes
+        state: started
+
+    - name: Deploy iptables rules
+      ansible.builtin.template:
+        src: iptables-save
+        dest: /etc/sysconfig/iptables
+      when: ansible_distribution_major_version != "7"
+      notify:
+        - restart iptables
+
+    - name: Ensure firewalld is installed (RHEL/CentOS 7+)
+      ansible.builtin.yum:
+        name: firewalld
+        state: present
+      when: ansible_distribution_major_version == "7"
+
+    - name: Ensure firewalld is started (RHEL/CentOS 7+)
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+      when: ansible_distribution_major_version == "7"
+
+    - name: Deploy firewalld rules (RHEL/CentOS 7+)
+      ansible.builtin.firewalld:
+        immediate: yes
+        port: "{{ item }}"
+        state: enabled
+        permanent: yes
+      when: ansible_distribution_major_version == "7"
+      loop:
+        - "{{ http_port }}/tcp"
+        - "{{ https_port }}/tcp"
+
+  handlers:
+    - name: restart jboss
+      ansible.builtin.service:
+        name: jboss
+        state: restarted
+
+    - name: restart iptables
+      ansible.builtin.service:
+        name: iptables
+        state: restarted

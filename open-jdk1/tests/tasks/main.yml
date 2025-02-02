@@ -1,0 +1,11 @@
+---
+# Checking the Java version and registering the output
+- name: Check Java version and register output
+  ansible.builtin.raw: java -version
+  register: java_register
+
+# Test if Java installation failed and display a message
+- name: Fail if Java installation failed
+  ansible.builtin.fail:
+    msg: 'Java installation failed'
+  when: "'java' not in java_register.stdout"

@@ -1,0 +1,29 @@
+---
+# Downloads the source file from the server
+- name: Extract archive
+  ansible.builtin.unarchive:
+    src: "{{ mariadbserverrpmfile }}"
+    dest: /opt/
+    remote_src: true
+
+# Installs the rpm key to repo
+- ansible.builtin.rpm_key:
+    state: present
+    key: "{{ rpmkey }}"
+
+# Runs the shell command for the repository installed
+- name: Shell command for mariadb debs
+  ansible.builtin.shell: /opt/mariadb-10.1.21-rhel-7-x86_64-rpms/setup_repository
+
+# Installs the mariadb-server from the downloaded repository
+- name: Install mariadb through yum repo
+  ansible.builtin.yum:
+    name: MariaDB-server
+    state: present
+
+# Starts the MariaDB service
+- name: Start MariaDB Service
+  ansible.builtin.service:
+    name: mariadb
+    state: started
+    enabled: yes

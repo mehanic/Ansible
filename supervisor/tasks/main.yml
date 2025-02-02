@@ -1,0 +1,8 @@
+---
+# Include Ubuntu tasks if the OS is Ubuntu
+- ansible.builtin.include_tasks: ubuntu.yml
+  when: ansible_distribution == 'Ubuntu'
+
+# Include RedHat tasks if the OS is RedHat
+- ansible.builtin.include_tasks: redhat.yml
+  when: ansible_distribution == 'RedHat'

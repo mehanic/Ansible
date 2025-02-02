@@ -1,0 +1,15 @@
+---
+- name: Include RedHat specific tasks
+  ansible.builtin.import_tasks:
+    file: redhat.yml
+  when: ansible_distribution == "RedHat"
+
+- name: Include Ubuntu specific tasks
+  ansible.builtin.import_tasks:
+    file: ubuntu.yml
+  when: ansible_distribution == "Ubuntu"
+
+- name: Include Amazon specific tasks
+  ansible.builtin.import_tasks:
+    file: amazon.yml
+  when: ansible_distribution == "Amazon"

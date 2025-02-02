@@ -1,0 +1,30 @@
+---
+# Install Node.js
+- name: Install Node.js dependencies
+  ansible.builtin.yum:
+    name:
+      - gcc-c++
+      - make
+    state: present
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Install Node.js from Nodesource repository (RedHat)
+  ansible.builtin.shell: |
+    curl -sL https://rpm.nodesource.com/setup_16.x | bash -
+    yum install -y nodejs
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Install Node.js from Nodesource repository (Ubuntu)
+  ansible.builtin.shell: |
+    curl -sL https://deb.nodesource.com/setup_16.x | bash -
+    apt-get install -y nodejs
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Check Node.js version
+  ansible.builtin.command: node -v
+  register: node_version
+  changed_when: false
+
+- name: Display Node.js version
+  ansible.builtin.debug:
+    msg: "Node.js version installed: {{ node_version.stdout }}"

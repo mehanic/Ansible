@@ -1,0 +1,35 @@
+---
+# Install OpenJDK
+- name: Install OpenJDK 11 (RedHat/Debian)
+  ansible.builtin.yum:
+    name: java-11-openjdk-devel
+    state: present
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Install OpenJDK 11 (Ubuntu/Debian)
+  ansible.builtin.apt:
+    name: openjdk-19-jdk
+    state: present
+  when: ansible_facts['os_family'] == 'Debian'
+
+# Set JAVA_HOME environment variable
+- name: Set JAVA_HOME environment variable
+  ansible.builtin.shell: |
+    echo "export JAVA_HOME=/usr/lib/jvm/java-19-openjdk" >> /etc/profile.d/java.sh
+    source /etc/profile.d/java.sh
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Set JAVA_HOME environment variable (Debian)
+  ansible.builtin.shell: |
+    echo "export JAVA_HOME=/usr/lib/jvm/java-19-openjdk-amd64" >> /etc/profile.d/java.sh
+    source /etc/profile.d/java.sh
+  when: ansible_facts['os_family'] == 'Debian'
+
+# Check installed Java version
+- name: Check installed Java version
+  ansible.builtin.command: java -version
+  register: java_version
+
+- name: Display Java version
+  ansible.builtin.debug:
+    msg: "Java version installed: {{ java_version.stdout }}"

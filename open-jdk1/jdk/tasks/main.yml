@@ -1,0 +1,32 @@
+---
+# Creating a directory for Java installation on the machine
+- name: Create directory for Java installation
+  ansible.builtin.file:
+    path: "{{ java_install_dir }}"
+    state: directory
+
+# Downloading and extracting the tar ball into the Java directory
+- name: Download and extract the Java tar ball
+  ansible.builtin.unarchive:
+    src: "{{ java_tar_ball }}"
+    dest: "{{ java_install_dir }}"
+    remote_src: true
+
+# Setting the JAVA_HOME path in .bashrc file
+- name: Set JAVA_HOME in .bashrc
+  ansible.builtin.lineinfile:
+    path: /root/.bashrc
+    line: "export JAVA_HOME={{ java_install_dir }}/jdk1.{{ java_version }}_{{ java_sub_version }}"
+    state: present
+
+# Setting the Java bin path in .bashrc file
+- name: Set Java bin path in .bashrc
+  ansible.builtin.lineinfile:
+    path: /root/.bashrc
+    line: "export PATH=$JAVA_HOME/bin:$PATH"
+    state: present
+
+# Executing the source command to load functions into the current shell
+- name: Execute the source command
+  ansible.builtin.shell: "source /root/.bashrc"
+  executable: /bin/bash

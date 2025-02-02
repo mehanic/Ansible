@@ -1,0 +1,13 @@
+---
+# To check the node version when the installation is done
+
+- name: Check the node version
+  ansible.builtin.command:
+    cmd: "node -v"
+  register: output
+  changed_when: false
+
+- name: Fail if Node.js is not installed
+  ansible.builtin.fail:
+    msg: "Installation failed"
+  when: "'node' not in output.stdout"

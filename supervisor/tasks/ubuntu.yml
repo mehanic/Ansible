@@ -1,0 +1,52 @@
+---
+# This is the playbook to install Supervisor on Ubuntu
+
+# Install python-setuptools
+- name: install python
+  ansible.builtin.apt:
+    name: python-setuptools
+    state: present
+
+# Install supervisor 
+- name: install supervisor
+  ansible.builtin.apt:
+    name: supervisor
+    state: installed
+
+# Creating a directory        
+- name: make directory
+  ansible.builtin.file:
+    path: /etc/supervisor/conf.d
+    state: directory
+    mode: '0777'
+
+# Start the supervisor service
+- name: start supervisor
+  ansible.builtin.service:
+    name: supervisor
+    state: started
+    enabled: yes
+
+# Copy service files 
+- name: Configure supervisord service
+  ansible.builtin.template:
+    src: supervisord.service
+    dest: /etc/systemd/system/
+
+# Copy configuration files  
+- name: Configure supervisord
+  ansible.builtin.template:
+    src: supervisord.conf
+    dest: /etc/supervisor/
+
+# Making a path file
+- name: make file
+  ansible.builtin.file:
+    path: /var/log/supervisord.sock
+    state: touch
+
+# Restart the supervisor service
+- name: start supervisor
+  ansible.builtin.service:
+    name: supervisor
+    state: started

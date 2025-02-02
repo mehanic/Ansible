@@ -1,0 +1,26 @@
+---
+# This code installs Node.js on different OS (RHEL, CentOS, Amazon, Ubuntu 14.0).
+# In Ubuntu 16.04, Python is required.
+
+# Download the tar file from the Node.js official website
+- name: Download Node.js tar file
+  ansible.builtin.get_url:
+    url: "http://nodejs.org/dist/v{{ version }}/node-v{{ version }}-linux-x64.tar.gz"
+    dest: "/tmp/node-v{{ version }}.tar.gz"
+
+# Untar the file which we downloaded
+- name: Extract Node.js tar file
+  ansible.builtin.command:
+    cmd: "tar -xvf /tmp/node-v{{ version }}.tar.gz -C /tmp"
+
+# Move the extracted file to the destination directory
+- name: Move Node.js extracted folder
+  ansible.builtin.command:
+    cmd: "mv /tmp/node-v{{ version }}-linux-x64 /opt/nodejs-v{{ version }}"
+
+# Create a symbolic link for Node.js binary
+- name: Create symbolic link for Node.js
+  ansible.builtin.file:
+    src: "/opt/nodejs-v{{ version }}/bin/node"
+    path: "/usr/bin/node"
+    state: link

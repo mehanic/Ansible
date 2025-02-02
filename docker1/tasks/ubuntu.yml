@@ -1,0 +1,50 @@
+---
+- name: Install Docker on Ubuntu
+  hosts: all
+  become: true
+
+  tasks:
+    # Download Python setuptools
+    - name: Download python-setuptools
+      ansible.builtin.get_url:
+        url: "{{ python_tools_ubuntu }}"
+        dest: /tmp/python-setuptools_3.3.orig.tar.gz
+
+    # Extract the tar file
+    - name: Extract Python setuptools archive
+      ansible.builtin.unarchive:
+        src: /tmp/python-setuptools_3.3.orig.tar.gz
+        dest: /opt/
+        remote_src: yes
+
+    # Install python-setuptools
+    - name: Install python-setuptools
+      ansible.builtin.apt:
+        name: python-setuptools
+        state: present
+        update_cache: yes
+
+    # Ensure apt-transport-https is installed
+    - name: Install apt-transport-https
+      ansible.builtin.apt:
+        name: apt-transport-https
+        state: present
+
+    # Add Docker repository
+    - name: Add Docker repository
+      ansible.builtin.apt_repository:
+        repo: "{{ repo_http }}"
+        state: present
+        update_cache: yes
+
+    # Add Docker GPG key
+    - name: Add Docker GPG key
+      ansible.builtin.apt_key:
+        id: "{{ key_id }}"
+        url: "{{ key_url }}"
+        state: present
+
+    # Install Docker using .deb package
+    - name: Install Docker
+      ansible.builtin.apt:
+        deb: "{{ deb_url }}"

@@ -1,0 +1,39 @@
+---
+# This playbook will install Supervisor on RedHat
+
+# Install python-setuptools
+- name: Install python-setuptools
+  ansible.builtin.yum:
+    name: python-setuptools
+    state: present
+
+# Installing easy_install package        
+- name: Install supervisor
+  ansible.builtin.shell:
+    cmd: easy_install supervisor
+
+# Creating a directory        
+- name: Creating the file directory
+  ansible.builtin.file:
+    path: /etc/supervisord.d/
+    state: directory
+    mode: '0755'
+
+# Copy service files 
+- name: copy services file
+  ansible.builtin.template:
+    src: visord.service
+    dest: /etc/systemd/system/supervisord.service
+
+# Copy configure files
+- name: copy configservice file to folder
+  ansible.builtin.template:
+    src: supervisord.conf
+    dest: /etc/supervisord.d/supervisord.conf
+
+# Restart the supervisord service
+- name: Restart supervisord service
+  ansible.builtin.service:
+    name: supervisord
+    state: restarted
+    enabled: yes
