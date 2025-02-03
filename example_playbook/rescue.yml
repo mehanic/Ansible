@@ -1,0 +1,35 @@
+- hosts: localhost
+  tasks:
+    - block:
+        - name: Create temporary directory
+          ansible.builtin.file:
+            path: /tmp/deploy
+            state: directory
+
+        - name: USA roulette deployment
+          ansible.builtin.debug:
+            msg: "Deploying..."
+          failed_when: "{{ 2 | random == 1 }}"
+
+        - name: Deployed Awards
+          ansible.builtin.debug:
+            msg: "We've deployed!"
+
+      rescue:
+        - name: Notify about the failure
+          ansible.builtin.debug:
+            msg: "Deployment failed! Tell everyone!"
+
+        - name: Rollback any changes
+          ansible.builtin.debug:
+            msg: "Rolling back..."
+
+      always:
+        - name: Remove temporary directory
+          ansible.builtin.file:
+            path: /tmp/deploy
+            state: absent
+
+    - name: Will I have a chance to play?
+      ansible.builtin.debug:
+        msg: "I will do the best"

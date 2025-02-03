@@ -1,0 +1,119 @@
+- hosts: all
+  gather_facts: no
+
+  tasks:
+    - name: Installing SUDO
+      ansible.builtin.raw: yum install -y sudo which creates=/bin/sudo
+      register: yum_install
+      changed_when: "'Nothing to do' not in yum_install.stdout"
+
+    - name: Debugging sudo installation output
+      ansible.builtin.debug:
+        msg: "Sudo Installation Output: {{ yum_install.stdout }}"
+
+- hosts: all
+  become: yes
+
+  vars:
+    schedule: '* * * * *'
+    cron_user: root
+    cron_group: root
+    logfile: /var/log/ansible-pull.log
+    workdir: /var/lib/ansible/local
+    repo_url: git://github.com/ansible-examples.git
+    repo_branch: develop
+    playbook: "trainings/day-5/tasks/pull/local.yml"
+
+  tasks:
+    - name: Install yum-utils
+      ansible.builtin.yum:
+        name: yum-utils
+      register: yum_utils_install
+
+    - name: Debugging yum-utils installation result
+      ansible.builtin.debug:
+        msg: "yum-utils installation result: {{ yum_utils_install.stdout }}"
+
+    - name: Install packages
+      ansible.builtin.yum:
+        name:
+          - epel-release
+          - git
+          - cronie
+      register: package_install
+
+    - name: Debugging package installation results
+      ansible.builtin.debug:
+        msg: "Installed packages: {{ package_install.stdout }}"
+
+    - name: Install python pip
+      ansible.builtin.yum:
+        name: python-pip
+      register: pip_install
+
+    - name: Debugging pip installation result
+      ansible.builtin.debug:
+        msg: "pip installation result: {{ pip_install.stdout }}"
+
+    - name: Ensure cron is running
+      ansible.builtin.systemd:
+        name: crond
+        state: started
+      register: cron_status
+
+    - name: Debugging cron service status
+      ansible.builtin.debug:
+        msg: "Cron service status: {{ cron_status.status }}"
+
+    - name: Install ansible
+      ansible.builtin.pip:
+        name: ansible
+      register: ansible_install
+
+    - name: Debugging ansible installation result
+      ansible.builtin.debug:
+        msg: "Ansible installation result: {{ ansible_install.stdout }}"
+
+    - name: Create local directory to work from
+      ansible.builtin.file: 
+        path: "{{ workdir }}"
+        state: directory
+        owner: "{{ cron_user }}"
+        group: "{{ cron_group }}"
+        mode: '0751'
+      register: workdir_creation
+
+    - name: Debugging work directory creation result
+      ansible.builtin.debug:
+        msg: "Work directory creation result: {{ workdir_creation.path }}"
+
+    - name: Create Ansible Pull Cron Job
+      ansible.builtin.cron:
+        name: "Ansible Pull Job"
+        job: >-
+          ANSIBLE_CONFIG={{ workdir }}/trainings/day-5/ansible.cfg
+          ANSIBLE_LOG_PATH={{ logfile }}
+          ansible-pull 
+          -U {{ repo_url }} 
+          -C {{ repo_branch }} 
+          -d {{ workdir }} 
+          {{ playbook }} >/dev/null 2>&1
+        user: "{{ cron_user }}"
+      register: cron_job_creation
+
+    - name: Debugging cron job creation
+      ansible.builtin.debug:
+        msg: "Cron job creation result: {{ cron_job_creation.name }}"
+
+    - name: Create logrotate entry for ansible-pull.log
+      ansible.builtin.template: 
+        src: templates/etc_logrotate.d_ansible-pull.j2
+        dest: /etc/logrotate.d/ansible-pull
+        owner: "{{ cron_user }}"
+        group: "{{ cron_group }}"
+        mode: '0644'
+      register: logrotate_creation
+
+    - name: Debugging logrotate entry creation
+      ansible.builtin.debug:
+        msg: "Logrotate entry created: {{ logrotate_creation.dest }}"
