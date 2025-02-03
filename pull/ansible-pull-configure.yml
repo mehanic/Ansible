@@ -20,7 +20,7 @@
     cron_group: root
     logfile: /var/log/ansible-pull.log
     workdir: /var/lib/ansible/local
-    repo_url: git://github.com/ansible-examples.git
+    repo_url: #git://github.com/ansible-examples.git
     repo_branch: develop
     playbook: "trainings/day-5/tasks/pull/local.yml"
 
