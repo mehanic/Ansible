@@ -1,0 +1,25 @@
+---
+- name: Install the MariaDB Server
+  ansible.builtin.yum:
+    name: "{{ item }}"
+    state: latest
+  loop:
+    - "{{ dbserver_pkg }}"
+    - "{{ dbclient_pkg }}"
+  notify:
+    - StartDBService
+    - RunSecureInstallPause
+    - RestartDBService
+    - CopyBkupFile
+    - CreateRemoteDB
+    - DisplayCreationResults
+    - RestoreRemoteDB
+    - TestDBResults
+    - ShowDBResults
+
+- name: Add a backup CRON job to run every day at midnight
+  ansible.builtin.cron:
+    name: "DBBackup"
+    minute: "0"
+    hour: "0"
+    job: "mysqldump -u root -ppassword123 --databases {{ dbinstancename }} > dbbkup.sql"

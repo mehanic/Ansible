@@ -1,0 +1,28 @@
+---
+- name: Install Client Packages
+  ansible.builtin.yum:
+    name: "{{ item }}"
+    state: latest
+  loop:
+    - "{{ nfsutils_pkg }}"
+    - "{{ nfslibs_pkg }}"
+  notify: StartClientServices
+
+- name: Start Client Services
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - "{{ rpcbind_service }}"
+    - "{{ nfslock_service }}"
+    - "{{ nfsmap_service }}"
+
+- name: Create Client Mount Directory
+  ansible.builtin.file:
+    path: "{{ client_path }}"
+    state: directory
+    mode: '0755'
+
+- name: Mount Server Resource on Client
+  ansible.builtin.shell: mount -t nfs tcox5.mylabserver.com:{{ export_path }} {{ client_path }}
+  register: result

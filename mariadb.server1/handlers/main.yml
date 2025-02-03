@@ -1,0 +1,42 @@
+---
+- name: StartDBService
+  ansible.builtin.service:
+    name: "{{ dbclient_pkg }}"
+    state: started
+
+- name: RunSecureInstallPause
+  ansible.builtin.pause:
+    prompt: "Please Run mysql_secure_installation binary and press ENTER - Playbook will restart DB Service..."
+
+- name: RestartDBService
+  ansible.builtin.service:
+    name: "{{ dbclient_pkg }}"
+    state: restarted
+
+- name: CopyBkupFile
+  ansible.builtin.copy:
+    src: mysqlbkup.sql
+    dest: "{{ dbinstalldir }}/mysqlbkup.sql"
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: CreateRemoteDB
+  ansible.builtin.shell: mysqladmin -uroot -ppassword123 create "{{ dbinstancename }}"
+  register: result
+
+- name: DisplayCreationResults
+  ansible.builtin.debug:
+    var: result
+
+- name: RestoreRemoteDB
+  ansible.builtin.shell: mysql -u root -ppassword123 "{{ dbinstancename }}" < "{{ dbinstalldir }}/mysqlbkup.sql"
+  register: result
+
+- name: TestDBResults
+  ansible.builtin.shell: mysql -u root -ppassword123 -e 'SHOW DATABASES;'
+  register: mysqlresult
+
+- name: ShowDBResults
+  ansible.builtin.debug:
+    var: mysqlresult

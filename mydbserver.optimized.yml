@@ -1,0 +1,82 @@
+---
+- hosts: appserver
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: yes
+  vars:
+    dbserver_pkg: mariadb-server
+    dbclient_pkg: mariadb
+    dbserver_fqdn: tcox5.mylabserver.com
+    dbinstalldir: /var/lib
+    dbinstancename: MyDBTest
+    dbdistribution: RedHat
+    dbversion: 5.5.44
+  tasks:
+    - name: Install the MariaDB Server and Client
+      ansible.builtin.yum:
+        name: "{{ item }}"
+        state: latest
+      loop:
+        - "{{ dbserver_pkg }}"
+        - "{{ dbclient_pkg }}"
+      notify:
+        - StartDBService
+        - RunSecureInstallPause
+        - RestartDBService
+        - CopyBkupFile
+        - CreateRemoteDB
+        - DisplayCreationResults
+        - RestoreRemoteDB
+        - TestDBResults
+        - ShowDBResults
+
+    - name: Add a backup CRON job to run every day at midnight
+      ansible.builtin.cron:
+        name: "DBBackup"
+        minute: "0"
+        hour: "0"
+        job: "mysqldump -u root -ppassword123 --databases {{ dbinstancename }} > dbbkup.sql"
+
+  handlers:
+    - name: StartDBService
+      ansible.builtin.service:
+        name: "{{ dbclient_pkg }}"
+        state: started
+
+    - name: RunSecureInstallPause
+      ansible.builtin.pause:
+        prompt: "Please Run mysql_secure_installation binary and press ENTER - Playbook will restart DB Service..."
+
+    - name: RestartDBService
+      ansible.builtin.service:
+        name: "{{ dbclient_pkg }}"
+        state: restarted
+
+    - name: CopyBkupFile
+      ansible.builtin.copy:
+        src: files/mysqlbkup.sql
+        dest: "{{ dbinstalldir }}/mysqlbkup.sql"
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: CreateRemoteDB
+      ansible.builtin.shell: mysqladmin -uroot -ppassword123 create {{ dbinstancename }}
+      register: result
+
+    - name: DisplayCreationResults
+      ansible.builtin.debug:
+        var: result
+
+    - name: RestoreRemoteDB
+      ansible.builtin.shell: mysql -u root -ppassword123 {{ dbinstancename }} < {{ dbinstalldir }}/mysqlbkup.sql
+      register: result
+
+    - name: TestDBResults
+      ansible.builtin.shell: mysql -u root -ppassword123 -e 'SHOW DATABASES;'
+      register: mysqlresult
+
+    - name: ShowDBResults
+      ansible.builtin.debug:
+        var: mysqlresult

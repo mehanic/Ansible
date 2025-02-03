@@ -1,0 +1,18 @@
+---
+- name: Install all the NFS Server Utilities, Services and Libraries
+  ansible.builtin.yum:
+    name: "{{ item }}"
+    state: latest
+  loop:
+    - "{{ nfsutils_pkg }}"
+    - "{{ nfslibs_pkg }}"
+
+- name: Copy the export file to the remote server
+  ansible.builtin.copy:
+    src: exports.template
+    dest: /etc/exports
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - StartServerServices

@@ -1,0 +1,13 @@
+---
+- name: StartHttpd
+  ansible.builtin.service:
+    name: "{{ apache_pkg }}"
+    state: started
+
+- name: TestHttpd
+  ansible.builtin.shell: "curl http://{{ apache_fqdn }}"
+  register: result
+
+- name: DisplayResult
+  ansible.builtin.debug:
+    var: result

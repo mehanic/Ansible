@@ -1,0 +1,99 @@
+---
+- hosts: appserver
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: yes
+  vars:
+    distribution: RedHat
+    nfsutils_pkg: nfs-utils
+    nfslibs_pkg: nfs-utils-lib
+    nfsserver_service: nfs-server
+    nfslock_service: nfs-lock
+    nfsmap_service: nfs-idmap
+    rpcbind_service: rpcbind
+    export_path: /var/share
+
+  tasks:
+    - name: Install the NFS Server and Utilities
+      ansible.builtin.yum:
+        name: "{{ nfsutils_pkg }}"
+        state: latest
+
+    - name: Install the NFS Server Libraries
+      ansible.builtin.yum:
+        name: "{{ nfslibs_pkg }}"
+        state: latest  
+
+    - name: Copy the export file to the remote server
+      ansible.builtin.copy:
+        src: files/exports.template
+        dest: /etc/exports
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Start the RPC Bind Service
+      ansible.builtin.service:
+        name: "{{ rpcbind_service }}"
+        state: started
+
+    - name: Start the NFS Service
+      ansible.builtin.service:
+        name: "{{ nfsserver_service }}"
+        state: started
+
+    - name: Start the File Lock Service
+      ansible.builtin.service:
+        name: "{{ nfslock_service }}"
+        state: started
+
+    - name: Start the NFS Map Service
+      ansible.builtin.service:
+        name: "{{ nfsmap_service }}"
+        state: started
+
+    - name: Install the NFS Client and Utilities
+      ansible.builtin.yum:
+        name: "{{ nfsutils_pkg }}"
+        state: latest
+      delegate_to: 127.0.0.1
+
+    - name: Install the NFS Client Libraries
+      ansible.builtin.yum:
+        name: "{{ nfslibs_pkg }}"
+        state: latest
+      delegate_to: 127.0.0.1
+
+    - name: Start Service for Client RPC
+      ansible.builtin.service:
+        name: "{{ rpcbind_service }}"
+        state: started
+      delegate_to: 127.0.0.1
+
+    - name: Start NFS Client File Lock Service
+      ansible.builtin.service:
+        name: "{{ nfslock_service }}"
+        state: started
+      delegate_to: 127.0.0.1
+
+    - name: Start the NFS Client Map Service
+      ansible.builtin.service:
+        name: "{{ nfsmap_service }}"
+        state: started
+      delegate_to: 127.0.0.1
+
+    - name: Create Client Mount Directory
+      ansible.builtin.file:
+        path: /mnt/remote
+        state: directory
+        mode: '0755'
+      delegate_to: 127.0.0.1
+
+    - name: Mount the filesystem on the client from the NFS server
+      ansible.builtin.mount:
+        name: /mnt/remote
+        src: "{{ export_path }}"
+        fstype: nfs
+        state: present
+      delegate_to: 127.0.0.1

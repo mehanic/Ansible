@@ -1,0 +1,71 @@
+---
+- hosts: appserver
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: yes
+  vars:
+    dbserver_pkg: mariadb-server
+    dbclient_pkg: mariadb
+    dbserver_fqdn: tcox5.mylabserver.com
+    dbinstalldir: /var/lib
+    dbinstancename: MyDBTest
+    dbdistribution: RedHat
+    dbversion: 5.5.44
+  tasks:
+    - name: Install the MariaDB Server
+      ansible.builtin.yum:
+        name: "{{ dbserver_pkg }}"
+        state: latest
+
+    - name: Install the MariaDB Client Utilities
+      ansible.builtin.yum:
+        name: "{{ dbclient_pkg }}"
+        state: latest
+
+    - name: Start the DB Service
+      ansible.builtin.service:
+        name: mariadb
+        state: started
+
+    - name: Pause for Secure Installation
+      ansible.builtin.pause:
+        prompt: "Please run the mysql_secure_installation binary and then press ENTER for the playbook to continue"
+
+    - name: Restart the DB Service
+      ansible.builtin.service:
+        name: mariadb
+        state: restarted
+
+    - name: Copy the remote database backup file
+      ansible.builtin.copy:
+        src: files/mysqlbkup.sql
+        dest: "{{ dbinstalldir }}/mysqlbkup.sql"
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Create the remote database instance
+      ansible.builtin.shell: mysqladmin -u root -ppassword123 create {{ dbinstancename }}
+      register: result
+
+    - name: Import the database backup to the live DB
+      ansible.builtin.shell: mysql -u root -ppassword123 {{ dbinstancename }} < {{ dbinstalldir }}/mysqlbkup.sql
+      register: result
+     
+    - debug:
+        var: result
+
+    - name: Add a backup CRON job to run every day at midnight
+      ansible.builtin.cron:
+        name: "DBBackup"
+        minute: "0"
+        hour: "0"
+        job: "mysqldump -u root -ppassword123 --databases {{ dbinstancename }} > {{ dbinstalldir }}/dbbkup.sql"
+
+    - name: Run a Quick SQL Command to verify everything is working
+      ansible.builtin.shell: mysql -u root -ppassword123 -e 'SHOW DATABASES;'
+      register: mysqlresult
+
+    - debug:
+        var: mysqlresult
