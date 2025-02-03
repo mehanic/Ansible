@@ -1,0 +1,59 @@
+---
+- name: Manage HashiCorp Vault Credentials
+  hosts: "{{ hostname_list }}"
+  become: yes
+  remote_user: centos
+  tasks:
+    - name: Fetch Vault credentials for vraptor user
+      set_fact:
+        vault_vraptor_user: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=secret/prod-automation/organizations/' + organization + '/microservices/vraptor/vraptor_user', token=lookup('env', 'VAULT_TOKEN'), url=lookup('env', 'VAULT_IP') + ':8200', validate_certs=False) }}"
+        vault_vraptor_pass: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=secret/prod-automation/organizations/' + organization + '/microservices/vraptor/vraptor_pass', token=lookup('env', 'VAULT_TOKEN'), url=lookup('env', 'VAULT_IP') + ':8200', validate_certs=False) }}"
+
+    - name: Hashicorp Vault [Prerequisites]
+      block:
+        - name: Check if Vault root token file exists
+          stat:
+            path: "/etc/vault.d/root_token"
+          register: token_file
+
+        - name: Read root token
+          slurp:
+            src: "/etc/vault.d/root_token"
+          when: token_file.stat.exists
+          register: token
+
+        - name: Set root token fact
+          set_fact:
+            root_token: "{{ token.content | b64decode | trim }}"
+      no_log: true
+      tags: find_token
+
+    - name: Check Vault Active Server
+      uri:
+        url: "http://127.0.0.1:8200/v1/sys/health"
+        method: GET
+        return_content: true
+        headers:
+          X-Vault-Token: "{{ root_token }}"
+          X-Vault-Request: true
+        status_code: [200, 429]
+      register: vault_active
+      until: vault_active.status in [200, 429]
+      retries: 5
+      delay: 5
+      ignore_errors: yes
+      no_log: true
+      environment:
+        VAULT_ADDR: "http://127.0.0.1:8200"
+        VAULT_TOKEN: "{{ root_token }}"
+
+    - name: Store vraptor credentials in Vault
+      community.hashi_vault.vault_write:
+        url: "http://127.0.0.1:8200"
+        token: "{{ root_token }}"
+        path: "secret/customers/{{ organization }}/vraptor/credentials"
+        data:
+          username: "{{ vault_vraptor_user['data'] }}"
+          password: "{{ vault_vraptor_pass['data'] }}"
+      become: true
+      when: vault_active.status == 200

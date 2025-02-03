@@ -1,0 +1,16 @@
+---
+- name: Download and Install Vault (Compatible with Ansible 1.17)
+  hosts: all
+  tasks:
+    - name: Download Vault binary version {{ vault_version }}
+      get_url:
+        url: "https://releases.hashicorp.com/vault/{{ vault_version }}/vault_{{ vault_version }}_linux_amd64.zip"
+        dest: "/tmp/vault_{{ vault_version }}_linux_amd64.zip"
+
+    - name: Unzip Vault binary
+      command: "unzip -o /tmp/vault_{{ vault_version }}_linux_amd64.zip -d /usr/local/bin/"
+
+    - name: Set executable permission for Vault
+      file:
+        path: "/usr/local/bin/vault"
+        mode: 0755

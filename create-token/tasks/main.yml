@@ -1,0 +1,63 @@
+---
+- name: Hashicorp Vault [Checking Environment]
+  fail:
+    msg: "Aborting - Can't run on production environment!"
+  when: "'prod' in ansible_hostname"
+
+- name: Hashicorp Vault [Prerequisites]
+  block:
+    - name: Find root token file
+      stat:
+        path: "{{ vault_conf_path }}/root_token"
+      register: token_file
+
+    - name: Read root token
+      slurp:
+        src: "{{ vault_conf_path }}/root_token"
+      when: token_file.stat.exists
+      register: token
+
+    - name: Set root token
+      set_fact:
+        root_token: "{{ token.content | b64decode | trim }}"
+  no_log: true
+  become: true
+  tags: find_token
+
+- name: Hashicorp Vault [Active Server]
+  block:
+    - name: Find active Vault
+      uri:
+        url: "http://127.0.0.1:8200/v1/sys/health"
+        method: GET
+        return_content: true
+        headers:
+          X-Vault-Token: "{{ root_token }}"
+          X-Vault-Request: true
+        status_code: [200, 429]
+      register: vault_active
+      until: vault_active.status in [200, 429]
+      retries: 5
+      delay: 5
+      ignore_errors: yes
+  no_log: true
+  become: true
+  environment:
+    VAULT_ADDR: "http://127.0.0.1:8200"
+    VAULT_TOKEN: "{{ root_token }}"
+
+- name: Hashicorp Vault [Temporary Token]
+  block:
+    - name: Generate Token
+      command: vault token create -no-default-policy -orphan=true -type="service" -policy="dev-policy" -ttl="24h" -field=token
+      register: temp_token
+      no_log: true
+
+    - name: Output Token
+      debug:
+        msg: "Token - {{ temp_token.stdout }}"
+  when: vault_active.status == 200
+  become: true
+  environment:
+    VAULT_ADDR: "http://127.0.0.1:8200"
+    VAULT_TOKEN: "{{ root_token }}"

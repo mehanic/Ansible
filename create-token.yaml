@@ -1,0 +1,7 @@
+---
+  - hosts: "{{ hostname_list }}"
+    remote_user: centos
+    gather_facts: true
+    order: sorted
+    roles:
+      - role: create-token
