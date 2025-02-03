@@ -1,0 +1,34 @@
+---
+- hosts: all
+  gather_facts: false
+
+  pre_tasks:
+    # Check Ubuntu release version to determine if we need to install Python 2,
+    # an ansible dependency that isn't included by default in Ubuntu 16.04 and
+    # up.
+
+    - name: Check Ubuntu release
+      ansible.builtin.raw: cat /etc/lsb-release | grep DISTRIB_RELEASE | cut -d "=" -f2
+      register: ubuntu_release
+
+    - name: Debug Ubuntu version
+      ansible.builtin.debug:
+        msg: "Running Ubuntu version {{ ubuntu_release.stdout }}"
+
+    # Update apt cache and install python 2 for Ubuntu versions greater than 16.04
+    - name: Update APT cache
+      ansible.builtin.raw: apt-get update
+      become: true
+
+    - name: Install Python
+      ansible.builtin.raw: apt-get install -yq python
+      become: true
+      when: ubuntu_release.stdout | version_compare('16.04', '>=')
+
+    # Gather facts once ansible dependencies are installed
+    - name: Gather facts
+      ansible.builtin.setup:
+
+  roles:
+    # Terraform
+    - { role: "ansible-terraform" }

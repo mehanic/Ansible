@@ -1,0 +1,23 @@
+---
+- hosts: apacheweb
+  user: test
+  sudo: yes
+  connection: ssh
+  tasks:
+    - name: Install Telnet Package
+      ansible.builtin.package:
+        name: telnet
+        state: latest
+
+    - name: Install Multiple Packages
+      ansible.builtin.package:
+        name:
+          - telnet
+          - httpd
+          - vim
+        state: latest
+
+    - name: Remove Telnet Package
+      ansible.builtin.package:
+        name: telnet
+        state: absent

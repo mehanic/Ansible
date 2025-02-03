@@ -1,0 +1,10 @@
+---
+- hosts: aptserver
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Change the hostname to tcox01
+      ansible.builtin.hostname:
+        name: tcox01

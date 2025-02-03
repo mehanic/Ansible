@@ -1,0 +1,35 @@
+---
+- hosts: apacheweb
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Ping application server before we run our install
+      ansible.builtin.command:
+        cmd: ping -c 4 tcox5
+      delegate_to: localhost
+
+    - name: Install Lynx on remote server
+      ansible.builtin.yum:
+        name: lynx
+        state: latest
+
+    - name: Ping application server before we run our install
+      ansible.builtin.command:
+        cmd: ping -c 4 tcox5
+      delegate_to: localhost
+      register: ping_result
+      ignore_errors: yes
+
+    - name: Fail the play if ping fails
+      ansible.builtin.fail:
+        msg: "Ping failed, aborting installation!"
+      when: ping_result.rc != 0
+
+    - name: Wait for the application server to respond to ping
+      ansible.builtin.wait_for:
+        host: tcox5
+        port: 80
+        state: started
+

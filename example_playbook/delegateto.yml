@@ -1,0 +1,15 @@
+---
+- hosts: apacheweb
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Run a remote ping on the application server
+      ansible.builtin.raw: ping -c 4 tcox5 > /home/test/Playbooks/ping.out
+      delegate_to: 127.0.0.1
+
+    - name: Install a package
+      ansible.builtin.yum:
+        name: lynx
+        state: latest

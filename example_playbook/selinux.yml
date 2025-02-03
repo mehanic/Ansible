@@ -1,0 +1,25 @@
+---
+- hosts: apacheweb
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Change SELinux Configuration to Permissive
+      ansible.builtin.selinux:
+        policy: targeted
+        state: permissive
+
+
+- name: Change SELinux Configuration to Enforcing
+  ansible.builtin.selinux:
+    policy: targeted
+    state: enforcing
+
+
+- name: Disable SELinux
+  ansible.builtin.selinux:
+    policy: targeted
+    state: disabled
+
+

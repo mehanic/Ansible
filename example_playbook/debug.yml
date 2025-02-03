@@ -1,0 +1,23 @@
+---
+- hosts: apacheweb
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Install web server
+      ansible.builtin.yum:
+        name: httpd
+        state: installed
+
+    - name: Debug message for yum install
+      ansible.builtin.debug:
+        msg: "Equivalent of sudo yum install httpd"
+
+    - name: How long has the system been up?
+      ansible.builtin.shell: /usr/bin/uptime
+      register: result
+
+    - name: Show uptime result
+      ansible.builtin.debug:
+        var: result

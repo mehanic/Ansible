@@ -1,0 +1,15 @@
+---
+- hosts: apacheweb
+  user: test
+  sudo: sudo
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Add a list of users
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - user1
+        - user2
+        - user3

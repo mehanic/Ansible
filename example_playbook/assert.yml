@@ -1,0 +1,14 @@
+---
+- hosts: apacheweb
+  become: yes
+  gather_facts: yes
+  tasks:
+    - name: Install Apache Web Server
+      ansible.builtin.yum:
+        name: httpd
+        state: installed
+
+    - name: Fail if not a RedHat based system
+      ansible.builtin.fail:
+        msg: "Installation Failed, this is not CentOS or RedHat Host"
+      when: ansible_facts['os_family'] != 'RedHat'

@@ -1,15 +1,8 @@
 ---
-- hosts: local
+- hosts: 127.0.0.1
+  user: root
+  connection: local
+  gather_facts: no
   tasks:
-    - name: Create an empty file
-      ansible.builtin.command:
-        cmd: touch /tmp/adfs
-
-    - name: Register a variable
-      ansible.builtin.command:
-        cmd: ls -l /etc/
-      register: out
-
-    - name: Debug output
-      ansible.builtin.debug:
-        var: out.stdout_lines
+    - name: Showing remote status
+      raw: /usr/bin/uptime > /root/uptime.logt

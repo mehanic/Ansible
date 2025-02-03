@@ -1,0 +1,11 @@
+---
+- hosts: appserver
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Check for python packages
+      ansible.builtin.command:
+        cmd: /home/test/testing/test.sh
+        chdir: /home/test/testing

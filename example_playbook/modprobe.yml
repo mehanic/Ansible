@@ -1,0 +1,17 @@
+---
+- hosts: appserver
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Remove the dummy module from the remote kernel
+      ansible.builtin.modprobe:
+        name: dummy
+        state: absent
+
+    - name: Add the dummy module to the remote kernel if not present
+      ansible.builtin.modprobe:
+        name: dummy
+        state: present
+      when: "'dummy' not in ansible_kernel_modules"

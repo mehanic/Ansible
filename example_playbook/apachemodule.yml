@@ -1,0 +1,12 @@
+---
+- hosts: appserver
+  vars:
+    author_name: Test user
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: Install Lynx on App Servers
+      ansible.builtin.yum:
+        name: lynx
+        state: installed
+        update_cache: true

@@ -1,0 +1,10 @@
+---
+- hosts: aptserver
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: Install Apache Web Server
+      ansible.builtin.apt:
+        name: apache2
+        state: present
+        update_cache: yes

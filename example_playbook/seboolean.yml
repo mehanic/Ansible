@@ -1,0 +1,32 @@
+---
+- hosts: apacheweb
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Change Boolean for Anonymous Writes on the Web Server
+      ansible.builtin.seboolean:
+        name: httpd_anon_write
+        state: yes
+        persistent: yes
+
+#using the seboolean module, which allows you to manage SELinux boolean values 
+#to control the behavior of SELinux policies:
+
+- name: Set multiple SELinux booleans
+  ansible.builtin.seboolean:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+    persistent: yes
+  with_items:
+    - { name: httpd_anon_write, state: yes }
+    - { name: httpd_enable_cgi, state: yes }
+
+#If you need to temporarily change a boolean without making the change persistent, set the persistent parameter to no:
+
+- name: Temporarily allow anonymous write
+  ansible.builtin.seboolean:
+    name: httpd_anon_write
+    state: yes
+    persistent: no

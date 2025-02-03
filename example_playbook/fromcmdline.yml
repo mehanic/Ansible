@@ -1,0 +1,11 @@
+---
+- hosts: "{{ hosts }}"
+  user: "{{ user }}"
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Install some software
+      ansible.builtin.yum:
+        name: "{{ pkg }}"
+        state: latest

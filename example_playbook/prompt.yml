@@ -1,0 +1,18 @@
+---
+- hosts: apacheweb
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  vars:
+    playbook_version: 0.01b
+  vars_prompt:
+    - name: pkgtoinstall
+      prompt: "Install Which Package?"
+      default: "telnet"
+      private: no
+  tasks:
+    - name: Install the indicated package
+      ansible.builtin.yum:
+        name: "{{ pkgtoinstall }}"
+        state: latest

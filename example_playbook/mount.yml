@@ -1,0 +1,35 @@
+---
+- hosts: appserver
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Mount the remote data partition
+      ansible.builtin.mount:
+        name: /mnt/data
+        src: /dev/xvdf1
+        fstype: ext3
+        opts: rw
+        state: present
+
+    - name: Ensure the remote partition is unmounted before mounting
+      ansible.builtin.mount:
+        name: /mnt/data
+        state: unmounted
+
+    - name: Mount the remote data partition
+      ansible.builtin.mount:
+        name: /mnt/data
+        src: /dev/xvdf1
+        fstype: ext3
+        opts: rw
+        state: present
+
+    - name: Mount an NFS share
+      ansible.builtin.mount:
+        name: /mnt/nfs
+        src: nfs-server:/exported/share
+        fstype: nfs
+        opts: rw
+        state: present

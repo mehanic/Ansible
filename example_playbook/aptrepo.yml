@@ -1,0 +1,14 @@
+---
+- hosts: aptserver
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: Install a dependency needed for apt_repository
+      ansible.builtin.apt:
+        name: python-apt
+        state: latest
+
+    - name: Add the Google Repo for Ubuntu
+      ansible.builtin.apt_repository:
+        repo: 'deb http://dl.google.com/linux/deb/ stable main non-free'
+        state: present

@@ -1,0 +1,15 @@
+---
+- hosts: apacheweb
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Display the HOME environment variable
+      ansible.builtin.debug:
+        msg: "{{ lookup('env', 'HOME') }} is the value listed"
+
+
+    - name: Get the list of hosts from a file
+      debug:
+        msg: "{{ lookup('file', '/path/to/hosts.txt') }}"

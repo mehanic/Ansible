@@ -1,0 +1,12 @@
+---
+- hosts: apacheweb
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: yes
+  tasks:
+    - name: Copy remote /etc/hosts file to control server
+      ansible.builtin.fetch:
+        src: /etc/hosts
+        dest: /home/test/prefix-{{ ansible_hostname }}
+        flat: yes

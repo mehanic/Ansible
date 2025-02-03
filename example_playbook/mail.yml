@@ -1,0 +1,32 @@
+---
+- hosts: aptserver
+  user: test
+  connection: ssh
+  tasks:
+    - name: Send an email to test user indicating build completion
+      ansible.builtin.mail:
+        host: localhost
+        port: 25
+        to: "test"
+        subject: "Our Host is Finished Deploying"
+        body: "System called {{ ansible_hostname }} has been successfully set up"
+
+
+    - name: Send an email with an attachment
+      ansible.builtin.mail:
+        host: localhost
+        port: 25
+        to: "test"
+        subject: "Build Completed"
+        body: "The system has finished deploying. Please find the logs attached."
+        attach: "/path/to/logfile.log"
+
+    - name: Send an email using SMTP with authentication
+      ansible.builtin.mail:
+        host: smtp.example.com
+        port: 587
+        username: "your_email@example.com"
+        password: "your_password"
+        to: "test@example.com"
+        subject: "Build Completed"
+        body: "The system has finished deploying."

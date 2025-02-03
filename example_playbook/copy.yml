@@ -1,0 +1,15 @@
+---
+- hosts: apacheweb
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Copy from the files directory test file
+      ansible.builtin.copy:
+        src: files/test4.txt
+        dest: /home/test/test4.txt
+        owner: test
+        group: test
+        mode: '0655'
+        backup: yes

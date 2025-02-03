@@ -1,0 +1,22 @@
+---
+- hosts: appserver
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Format the remote data partition with ext3
+      ansible.builtin.filesystem:
+        fstype: ext3
+        dev: /dev/xvdf1
+
+    - name: Ensure the device exists before formatting
+      ansible.builtin.stat:
+        path: /dev/xvdf1
+      register: device_check
+
+    - name: Format the partition if it exists
+      ansible.builtin.filesystem:
+        fstype: ext3
+        dev: /dev/xvdf1
+      when: device_check.stat.exists

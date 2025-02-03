@@ -1,0 +1,32 @@
+---
+- hosts: apacheweb
+  user: test
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    # Installing packages (telnet and lynx)
+    - name: Install the telnet and lynx packages
+      yum:
+        pkg: "{{ item }}"
+        state: latest
+      with_items:
+        - telnet
+        - lynx
+      tags:
+        - packages
+        - install
+
+    # Verify telnet installation
+    - name: Verify that telnet was installed
+      raw: yum list installed | grep telnet > /home/test/pkg.log
+      tags:
+        - logging
+        - verification
+
+    # Additional task for demonstration
+    - name: List the /var directory and log it
+      shell: ls -al /var > /home/test/var_directory.log
+      tags:
+        - logging
+        - directory_listing

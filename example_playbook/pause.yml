@@ -1,0 +1,18 @@
+---
+- hosts: apacheweb
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: Install HTTPD
+      ansible.builtin.yum:
+        name: httpd
+        state: installed
+
+    - name: Pausing
+      ansible.builtin.pause:
+        prompt: "Press ENTER to Continue..."
+
+    - name: Verify lynx installation
+      ansible.builtin.yum:
+        name: lynx
+        state: present

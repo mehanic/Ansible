@@ -1,0 +1,60 @@
+---
+- hosts: apacheweb
+  user: test
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Checking out a git repo on the remote server
+      ansible.builtin.git:
+        repo: 'https://github.com/your/repo.git'
+        dest: '/home/test/repo'
+        version: 'main'
+
+---
+- hosts: apacheweb
+  user: test
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Clone a git repository (if not already present)
+      ansible.builtin.git:
+        repo: 'https://github.com/your/repo.git'
+        dest: '/home/test/repo'
+        clone: yes
+        version: 'main'
+        force: yes
+        update: yes
+    
+    - name: Ensure specific branch is checked out
+      ansible.builtin.git:
+        repo: 'https://github.com/your/repo.git'
+        dest: '/home/test/repo'
+        version: 'feature_branch'
+        update: yes
+        force: yes
+        clone: yes
+    
+    - name: Pull the latest changes from the repo
+      ansible.builtin.git:
+        repo: 'https://github.com/your/repo.git'
+        dest: '/home/test/repo'
+        update: yes
+        version: 'main'
+
+    - name: Check if the repo exists
+      ansible.builtin.stat:
+        path: "/home/test/repo/.git"
+      register: repo_check
+
+    - name: Clone repository if not already cloned
+      ansible.builtin.git:
+        repo: 'https://github.com/your/repo.git'
+        dest: '/home/test/repo'
+        clone: yes
+        version: 'main'
+      when: repo_check.stat.exists == False
+
+    - name: Handle Git clone errors
+      ansible.builtin.debug:
+        msg: "Failed to clone or update repository"
+      when: result.rc != 0

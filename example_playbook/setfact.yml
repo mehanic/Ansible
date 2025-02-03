@@ -1,0 +1,20 @@
+---
+- hosts: appserver
+  sudo: yes
+  user: test
+  connection: ssh
+  gather_facts: no
+  vars:
+    playbook_version: 0.1
+  tasks:
+    - name: Set a local variable 'singlefact'
+      set_fact: 
+        singlefact: SOMETHING
+
+    - name: Display the version of the playbook
+      debug: 
+        msg: "{{ playbook_version }}"
+
+    - name: Display the custom fact 'singlefact'
+      debug: 
+        msg: "{{ singlefact }}"

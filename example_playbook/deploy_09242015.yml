@@ -1,0 +1,30 @@
+---
+- hosts: appserver
+  gather_facts: no
+  tasks:
+    - name: Install Lynx on App Servers
+      ansible.builtin.yum:
+        name: lynx
+        state: installed
+        update_cache: true
+
+    - name: Querying for Telnet Install
+      ansible.builtin.yum:
+        name: telnet
+        state: present
+        update_cache: true
+
+- hosts: apacheweb
+  gather_facts: no
+  tasks:
+    - name: Install Telnet on Web Servers
+      ansible.builtin.yum:
+        name: telnet
+        state: installed
+        update_cache: true
+
+    - name: Querying for Lynx Install
+      ansible.builtin.yum:
+        name: lynx
+        state: present
+        update_cache: true

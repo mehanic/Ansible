@@ -1,0 +1,20 @@
+---
+- hosts: apacheweb
+  user: test
+  sudo: yes
+  connection: ssh
+  tasks:
+    - name: Install Web Server
+      ansible.builtin.yum:
+        name: httpd
+        state: installed
+
+    - name: Start the Web Server
+      ansible.builtin.service:
+        name: httpd
+        state: started
+
+    - name: Enable HTTPD After Reboot
+      ansible.builtin.service:
+        name: httpd
+        enabled: yes

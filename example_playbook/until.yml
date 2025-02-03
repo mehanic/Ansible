@@ -1,0 +1,22 @@
+---
+- hosts: apacheweb
+  sudo: yes
+  connection: ssh
+  user: test
+  gather_facts: no
+  tasks:
+    - name: Installing Apache Web Server
+      ansible.builtin.yum: 
+        name: httpd
+        state: latest
+
+    - name: Verify Service Status
+      ansible.builtin.shell: systemctl status httpd
+      register: result
+      until: result.stdout.find("active (running)") != -1
+      retries: 5
+      delay: 5
+
+    - name: Debug the result of service status check
+      ansible.builtin.debug:
+        var: result
