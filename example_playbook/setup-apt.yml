@@ -1,0 +1,20 @@
+---
+- name: Ensure Opera Browser is Installed
+  hosts: all
+  tasks:
+    - name: "apt | ensure Opera linux signing key present"
+      apt_key:
+        url: https://deb.opera.com/archive.key
+        state: present
+
+    - name: "apt | ensure Opera repo present"
+      apt_repository:
+        repo: "deb [arch=amd64] https://ftp.opera.com/pub/opera/desktop/ $(lsb_release -sc) stable main"
+        filename: "opera"
+        state: present
+        update_cache: yes
+
+    - name: "apt | ensure Opera present"
+      apt:
+        name: "{{ opera_package }}"
+        state: present
