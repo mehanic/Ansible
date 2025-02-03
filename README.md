@@ -1,0 +1,1 @@
+for learning different variants ansible playbooks and roles
