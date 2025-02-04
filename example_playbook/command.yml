@@ -1,11 +1,10 @@
 ---
-- hosts: appserver
-  user: test
-  sudo: yes
-  connection: ssh
-  gather_facts: no
-  tasks:
-    - name: Check for python packages
-      ansible.builtin.command:
-        cmd: /home/test/testing/test.sh
-        chdir: /home/test/testing
+  - hosts: "{{ servers | default('all') }}"
+    gather_facts: yes
+    become: yes
+    remote_user: "{{ remote_user | default('opc') }}"
+    tasks:
+      - name: Run command
+        command: "{{ cmd }}"
+
+#healthchecks

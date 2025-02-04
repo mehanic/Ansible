@@ -1,0 +1,53 @@
+---
+- hosts: "{{ hostname_list }}"
+  gather_facts: yes
+  become: yes
+  remote_user: centos
+
+  vars:
+    sftp_dir: "/opt/sftp/upload/"
+    gs_command: "gsutil -m mv {{ sftp_dir }} gs://cr-sftp-{{ organization }}"
+
+  tasks:
+    - name: Create sftp directory
+      file:
+        path: "{{ sftp_dir }}"
+        state: directory
+
+    - name: Create sftp user
+      user:
+        name: sftp-user
+        password: "{{ pass | password_hash('sha512') }}"
+        shell: /bin/false
+        createhome: yes
+        home: "{{ sftp_dir }}"
+
+    - name: Set folder permissions
+      shell: |
+        chown sftp-user:sftp-user {{ sftp_dir }}
+        chown root:root /opt/sftp
+        chmod 755 /opt/sftp
+
+    - name: Update sshd configuration
+      blockinfile:
+        path: "/etc/ssh/sshd_config"
+        block: |
+          Match User sftp-user
+          ForceCommand internal-sftp
+          PasswordAuthentication yes
+          ChrootDirectory /opt/sftp
+          PermitTunnel no
+          AllowAgentForwarding no
+          AllowTcpForwarding no
+          X11Forwarding no
+
+    - name: Restart sshd service
+      service:
+        name: sshd
+        state: restarted
+
+    - name: Create cron job for data backup
+      cron:
+        name: "Backup data to a cloud storage service"
+        minute: "*"
+        job: "{{ gs_command }}"
