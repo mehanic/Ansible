@@ -1,0 +1,12 @@
+---
+- name: Show loop over variable
+  hosts: all
+  gather_facts: false  # Not needed for this task
+  vars_files:
+    - loopvars.yml
+
+  tasks:
+    - name: Show the working
+      debug:
+        msg: "This is {{ item }}"
+      loop: "{{ randomstuff }}"

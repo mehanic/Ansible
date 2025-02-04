@@ -1,0 +1,21 @@
+---
+- name: Deploy vsftpd
+  hosts: ansible2.example.com
+  tasks:
+    - name: Install vsftpd
+      ansible.builtin.yum:
+        name: vsftpd
+        state: present
+
+    - name: Enable vsftpd
+      ansible.builtin.service:
+        name: vsftpd
+        enabled: true
+        state: started
+
+    - name: Create readme file
+      ansible.builtin.copy:
+        content: "Welcome to this FTP server"
+        dest: /var/ftp/pub/README
+        force: no
+        mode: '0444'

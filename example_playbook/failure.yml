@@ -1,15 +1,12 @@
 ---
-- hosts: apacheweb
-  user: test
-  sudo: yes
-  connection: ssh
-  gather_facts: no
-  tasks:
-    - name: Execute a command that will fail
-      ansible.builtin.command: /bin/false
+- name: demonstrating failed_when
+  hosts: all
+  tasks: 
+    - name: run a script
+      command: echo hello world
       ignore_errors: yes
-
-    - name: Install telnet
-      ansible.builtin.yum:
-        name: telnet
-        state: latest
+      register: command_result
+      failed_when: "'world' in command_result.stdout"
+    - name: see if we get here
+      debug:
+        msg: hello

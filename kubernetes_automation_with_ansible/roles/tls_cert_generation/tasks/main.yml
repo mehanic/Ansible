@@ -1,0 +1,83 @@
+---
+# tasks file for tls_cert_generation
+
+- name: Download CFSSL tool
+  ansible.builtin.get_url:
+    url: "https://pkg.cfssl.org/R1.2/cfssl_linux-amd64"
+    validate_certs: no
+    dest: /usr/local/bin/cfssl
+    mode: '0755'
+
+- name: Download CFSSL JSON tool
+  ansible.builtin.get_url:
+    url: "https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64"
+    validate_certs: no
+    dest: /usr/local/bin/cfssljson
+    mode: '0755'
+
+- name: Ensure CA configuration files are present
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/tmp/"
+    mode: '0755'
+  loop:
+    - ca-config.json
+    - ca-csr.json
+
+- name: Create PKI directory
+  ansible.builtin.file:
+    path: "{{ PKI_DIR }}"
+    state: directory
+    mode: '0755'
+
+- name: Generate CA certificate and private key
+  ansible.builtin.command:
+    cmd: cfssl gencert -initca /tmp/ca-csr.json | cfssljson -bare ca
+    chdir: "{{ PKI_DIR }}"
+    creates: "{{ PKI_DIR }}/ca-key.pem"
+
+- name: Ensure required CSR files are present
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/tmp/"
+    mode: '0755'
+  loop:
+    - admin-csr.json
+    - kube-proxy-csr.json
+    - kube-controller-manager-csr.json
+    - kube-scheduler-csr.json
+    - kubernetes-csr.json
+    - service-account-csr.json
+
+- name: Generate certificates and private keys
+  ansible.builtin.command:
+    cmd: cfssl gencert -ca={{ PKI_DIR }}/ca.pem -ca-key={{ PKI_DIR }}/ca-key.pem -config=/tmp/ca-config.json -profile=kubernetes /tmp/{{ item }}-csr.json | cfssljson -bare {{ item }}
+    chdir: "{{ PKI_DIR }}"
+    creates: "{{ PKI_DIR }}/{{ item }}-key.pem"
+  loop:
+    - admin
+    - kube-proxy
+    - kube-controller-manager
+    - kube-scheduler
+    - kubernetes
+    - service-account
+
+- name: Deploy kubelet JSON templates
+  ansible.builtin.template:
+    src: "kubelete-templates.j2"
+    dest: "/tmp/{{ item }}.json"
+    mode: '0640'
+  loop:
+    - "{{ k8s_worker1 }}"
+    - "{{ k8s_worker2 }}"
+    - "{{ k8s_worker3 }}"
+
+- name: Generate kubelet certificates and private keys
+  ansible.builtin.command:
+    cmd: cfssl gencert -ca={{ PKI_DIR }}/ca.pem -ca-key={{ PKI_DIR }}/ca-key.pem -config=/tmp/ca-config.json -profile=kubernetes /tmp/{{ item }}.json | cfssljson -bare {{ item }}
+    chdir: "{{ PKI_DIR }}"
+    creates: "{{ PKI_DIR }}/{{ item }}-key.pem"
+  loop:
+    - "{{ k8s_worker1 }}"
+    - "{{ k8s_worker2 }}"
+    - "{{ k8s_worker3 }}"

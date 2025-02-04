@@ -1,0 +1,34 @@
+---
+# tasks file for python
+# Installs the latest Python 3 version in Ubuntu using the deadsnakes ppa
+---
+- name: Install prerequisites
+  ansible.builtin.apt:
+    name: software-properties-common
+    state: present
+  become: true
+
+- name: Resolve platform specific vars
+  ansible.builtin.include_vars:
+    file: "{{ item }}"
+  loop:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_release }}.yml"
+    - "{{ ansible_distribution }}.yml"
+    - "{{ ansible_os_family }}.yml"
+  ignore_errors: yes
+
+- name: Installing Python OS packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  become: true
+  with_items: "{{ python_pkgs }}"
+
+- name: Upgrade Python versions
+  ansible.builtin.script:
+    cmd: /home/net/ansible/python/upgrade_python.sh
+  register: output
+
+- ansible.builtin.debug:
+    var: output.stdout_lines
+

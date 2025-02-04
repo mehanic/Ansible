@@ -1,0 +1,4 @@
+- name:  Setup Kuberenetes Control Plane
+  hosts: k8s_masters
+  roles:
+    - bootstrap_kubernetes_control_plane

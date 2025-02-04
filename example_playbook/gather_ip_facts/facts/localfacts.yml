@@ -1,0 +1,30 @@
+---
+- name: Install custom facts
+  hosts: lamp
+  vars:
+    remote_dir: /etc/ansible/facts.d
+    facts_file: localfacts.fact
+  tasks:
+    - name: Create fact directory
+      ansible.builtin.file:
+        state: directory
+        recurse: yes
+        path: "{{ remote_dir }}"
+        
+    - name: Install new facts
+      ansible.builtin.copy:
+        src: "{{ facts_file }}"
+        dest: "{{ remote_dir }}"
+
+- name: Install and start services
+  hosts: lamp
+  tasks:
+    - name: Install package from custom facts
+      ansible.builtin.yum:
+        name: "{{ ansible_local.localfacts.localfacts.package }}"
+        state: present
+
+    - name: Start service from custom facts
+      ansible.builtin.service:
+        name: "{{ ansible_local.localfacts.localfacts.service }}"
+        state: started

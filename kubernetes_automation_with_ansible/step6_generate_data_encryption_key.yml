@@ -1,0 +1,7 @@
+- name: Create the all certificates
+  hosts: localhost
+  connection: local
+  roles:
+    - generate_data_encryption_key
+
+

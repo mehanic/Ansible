@@ -1,0 +1,6 @@
+- name: Create the all certificates
+  hosts: localhost
+  connection: local
+  roles:
+    - tls_cert_generation
+

@@ -1,10 +1,10 @@
 ---
-- name: conditionals test
+- name: Conditionals test
   hosts: all
   tasks:
-    - name: install vsftpd if sufficient space on /var/ftp
+    - name: Install vsftpd if sufficient space on /var/ftp
       ansible.builtin.package:
         name: vsftpd
         state: latest
       loop: "{{ ansible_mounts }}"
-      when: item.mount == '/boot' and item.size_available > 100000000
+      when: item.mount == "/var/ftp" and item.size_available > 100000000

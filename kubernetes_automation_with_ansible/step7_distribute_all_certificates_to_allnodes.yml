@@ -1,0 +1,6 @@
+- name: Distribute all the  certificates to all the master and worker nodes
+  hosts: all_nodes
+  roles:
+    - distribute_all_certificates_to_allnodes
+
+

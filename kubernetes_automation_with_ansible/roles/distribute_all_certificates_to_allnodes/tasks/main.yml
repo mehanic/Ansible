@@ -1,0 +1,46 @@
+# - name: Copy certificates from local to all other nodes
+#   delegate_to: 127.0.0.1
+#   run_once: true
+#   become: false
+#   shell: "scp -r {{ PKI_DIR }} root@{{ item }}:/ "
+#   loop:
+#     - "{{groups['k8s_masters'][0] }}"
+#     - "{{groups['k8s_masters'][1] }}"
+#     - "{{groups['k8s_masters'][2] }}"
+#     - "{{groups['k8s_workers'][0] }}"
+#     - "{{groups['k8s_workers'][1] }}"
+#     - "{{groups['k8s_workers'][2] }}"
+
+# - name: Copy kubeconfig  from local to other nodes
+#   delegate_to: 127.0.0.1
+#   run_once: true
+#   become: false
+#   shell: "scp -r {{ CONF_DIR }} root@{{ item }}:/ "
+#   loop:
+#     - "{{groups['k8s_masters'][0] }}"
+#     - "{{groups['k8s_masters'][1] }}"
+#     - "{{groups['k8s_masters'][2] }}"
+#     - "{{groups['k8s_workers'][0] }}"
+#     - "{{groups['k8s_workers'][1] }}"
+#     - "{{groups['k8s_workers'][2] }}"
+
+- name: Copy certificates from local to all other nodes
+  ansible.builtin.copy:
+    src: "{{ PKI_DIR }}/"
+    dest: "/"
+    mode: '0644'
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['k8s_masters'] + groups['k8s_workers'] }}"
+  run_once: true
+  become: true
+
+- name: Copy kubeconfig from local to all other nodes
+  ansible.builtin.copy:
+    src: "{{ CONF_DIR }}/"
+    dest: "/"
+    mode: '0644'
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['k8s_masters'] + groups['k8s_workers'] }}"
+  run_once: true
+  become: true
+

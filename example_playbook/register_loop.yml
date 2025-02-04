@@ -1,0 +1,14 @@
+---
+- name: Demo how register works
+  hosts: all
+  tasks:
+    - name: Show loop register
+      ansible.builtin.shell: "echo {{ item }}"
+      loop:
+        - "one"
+        - "two"
+      register: echo
+
+    - name: Show register results
+      ansible.builtin.debug:
+        var: echo

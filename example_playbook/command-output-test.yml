@@ -1,0 +1,17 @@
+---
+- name: Test command output
+  hosts: ansible1.example.com
+  tasks:
+    - name: Test for Volume Group (VG) existence
+      command: vgs centos
+      register: vgout
+      ignore_errors: true
+
+    - name: Show variable value
+      debug:
+        var: vgout
+
+    - name: Print message if VG does not exist
+      debug:
+        msg: "Volume Group 'centos' does not exist."
+      when: vgout is failed and "'not found' in vgout.stderr"

@@ -1,0 +1,54 @@
+- name: Install and Configure ETCD
+  hosts: all
+  become: yes
+  vars:
+    etcd_version: "v3.5.9"  # Change to desired version
+
+  tasks:
+    - name: Download and Extract ETCD
+      ansible.builtin.unarchive:
+        src: "https://github.com/coreos/etcd/releases/download/{{ etcd_version }}/etcd-{{ etcd_version }}-linux-amd64.tar.gz"
+        dest: /tmp
+        remote_src: yes
+        mode: '0755'
+        validate_certs: no
+
+    - name: Move ETCD executables to /usr/local/bin
+      ansible.builtin.command:
+        cmd: mv /tmp/etcd-{{ etcd_version }}-linux-amd64/etcd* /usr/local/bin
+      changed_when: false  # Prevents unnecessary changes on every run
+
+    - name: Create ETCD configuration directory
+      ansible.builtin.file:
+        path: /etc/etcd
+        state: directory
+        mode: '0755'
+
+    - name: Create ETCD data directory
+      ansible.builtin.file:
+        path: /var/lib/etcd
+        state: directory
+        mode: '0755'
+
+    - name: Copy .pem files to /etc/etcd
+      ansible.builtin.copy:
+        src: "/vagrant/{{ item }}"
+        dest: "/etc/etcd/"
+        mode: '0644'
+      loop:
+        - ca.pem
+        - kubernetes-key.pem
+        - kubernetes.pem
+
+    - name: Deploy ETCD service file
+      ansible.builtin.template:
+        src: etcd.service
+        dest: /etc/systemd/system/etcd.service
+        mode: '0644'
+
+    - name: Reload systemd and enable/start ETCD service
+      ansible.builtin.systemd:
+        name: etcd
+        state: started
+        daemon_reload: yes
+        enabled: yes

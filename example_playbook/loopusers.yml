@@ -1,0 +1,19 @@
+---
+- name: Create users using a loop
+  hosts: all
+  gather_facts: false  # Not needed for user creation
+
+  tasks: 
+    - name: Create users 
+      ansible.builtin.user:  # Explicitly specifying the module for clarity
+        name: "{{ item.name }}"
+        state: present
+        groups: "{{ item.groups }}"
+        append: true  # Ensures users are added to groups without removing existing ones
+      loop:
+        - name: anna
+          groups: wheel
+        - name: linda
+          groups: users
+        - name: bob
+          groups: users

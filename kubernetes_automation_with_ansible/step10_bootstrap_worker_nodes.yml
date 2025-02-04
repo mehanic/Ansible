@@ -1,0 +1,4 @@
+- name:  Setup Kuberenetes Worker Nodes
+  hosts: k8s_workers
+  roles:
+    - bootstrap_worker_nodes

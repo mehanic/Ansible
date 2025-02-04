@@ -1,0 +1,38 @@
+---
+# tasks file for install_haproxy
+
+- name: Install the latest version of HAProxy
+  ansible.builtin.package:
+    name: haproxy
+    state: present
+
+- name: Configure HAProxy as the Load Balancer for Kubernetes cluster
+  ansible.builtin.blockinfile:
+    path: /etc/haproxy/haproxy.cfg
+    marker: "# BEGIN Adding Master IP addresses"
+    block: |
+      frontend k8s
+          bind {{ k8s_loadbalancer_ip }}:6443
+          mode tcp
+          default_backend k8s
+
+      backend k8s
+          mode tcp
+          balance roundrobin
+          option tcplog
+          option tcp-check
+          server {{ k8s_master1 }} {{ k8s_master1_ip }}:6443 check
+          server {{ k8s_master2 }} {{ k8s_master2_ip }}:6443 check
+          server {{ k8s_master3 }} {{ k8s_master3_ip }}:6443 check
+    create: true
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+
+- name: Restart and enable HAProxy service
+  ansible.builtin.systemd:
+    name: haproxy
+    state: restarted
+    enabled: yes
+    daemon_reload: yes

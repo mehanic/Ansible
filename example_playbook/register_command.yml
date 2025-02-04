@@ -1,0 +1,21 @@
+---
+- name: Test register
+  hosts: all
+  vars_prompt:
+    - name: username
+      prompt: "Which user are you looking for?"
+      private: no  # Ensures the input is visible, change to 'yes' if sensitive data is expected
+
+  tasks:
+    - name: Read contents of /etc/passwd
+      ansible.builtin.shell: cat /etc/passwd
+      register: passwd_contents
+
+    - name: Debug output of passwd_contents
+      ansible.builtin.debug:
+        var: passwd_contents
+
+    - name: Print message if user is found in passwd
+      ansible.builtin.debug: 
+        msg: "passwd contains user {{ username }}"
+      when: "'{{ username }}' in passwd_contents.stdout"

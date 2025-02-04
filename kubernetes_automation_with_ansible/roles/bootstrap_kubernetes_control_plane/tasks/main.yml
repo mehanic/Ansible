@@ -1,0 +1,97 @@
+- name: Install and Configure Kubernetes Control Plane
+  hosts: all
+  become: yes
+  vars:
+    k8s_version: "v1.30.0"  # Change to desired Kubernetes version
+
+  tasks:
+    - name: Create config directory
+      ansible.builtin.file:
+        path: /etc/kubernetes/config
+        state: directory
+        mode: '0755'
+
+    - name: Copy .pem and encryption-config.yaml files to /var/lib/kubernetes/
+      ansible.builtin.copy:
+        src: "/vagrant/{{ item }}"
+        dest: "/var/lib/kubernetes/"
+        mode: '0644'
+      loop:
+        - ca.pem
+        - ca-key.pem
+        - kubernetes-key.pem
+        - kubernetes.pem
+        - encryption-config.yaml
+        - service-account.pem
+
+    - name: Copy .kubeconfig files to /var/lib/kubernetes/
+      ansible.builtin.copy:
+        src: "/kubeconfig/{{ item }}"
+        dest: "/var/lib/kubernetes/"
+        mode: '0644'
+      loop:
+        - kube-controller-manager.kubeconfig
+        - kube-scheduler.kubeconfig
+
+    - name: Download and Install Kubernetes Binaries
+      ansible.builtin.get_url:
+        url: "https://storage.googleapis.com/kubernetes-release/release/{{ k8s_version }}/bin/linux/amd64/{{ item }}"
+        dest: "/usr/local/bin/{{ item }}"
+        mode: '0755'
+        validate_certs: no
+      loop:
+        - kube-apiserver
+        - kube-controller-manager
+        - kube-scheduler
+        - kubectl
+
+    - name: Deploy kube-apiserver service
+      ansible.builtin.template:
+        src: kube-apiserver.service
+        dest: /etc/systemd/system/kube-apiserver.service
+        mode: '0644'
+
+    - name: Reload systemd and enable/start kube-apiserver service
+      ansible.builtin.systemd:
+        name: kube-apiserver
+        state: started
+        daemon_reload: yes
+        enabled: yes
+
+    - name: Deploy kube-controller-manager service
+      ansible.builtin.template:
+        src: kube-controller-manager.service
+        dest: /etc/systemd/system/kube-controller-manager.service
+        mode: '0644'
+
+    - name: Reload systemd and enable/start kube-controller-manager service
+      ansible.builtin.systemd:
+        name: kube-controller-manager
+        state: started
+        daemon_reload: yes
+        enabled: yes
+
+    - name: Create kube-scheduler configuration file
+      ansible.builtin.template:
+        src: "kube-scheduler.yaml"
+        dest: "/etc/kubernetes/config/kube-scheduler.yaml"
+        mode: '0644'
+
+    - name: Deploy kube-scheduler service
+      ansible.builtin.template:
+        src: kube-scheduler.service
+        dest: /etc/systemd/system/kube-scheduler.service
+        mode: '0644'
+
+    - name: Reload systemd and enable/start kube-scheduler service
+      ansible.builtin.systemd:
+        name: kube-scheduler
+        state: started
+        daemon_reload: yes
+        enabled: yes
+
+    - name: Copy role-based access control (RBAC) YAML
+      ansible.builtin.template:
+        src: "roleBAC.yml"
+        dest: "/vagrant/roleBAC.yml"
+      tags: rbc

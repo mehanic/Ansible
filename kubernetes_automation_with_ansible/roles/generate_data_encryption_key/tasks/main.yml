@@ -1,0 +1,27 @@
+- name: Create the TLS Bootstrap Token
+  ansible.builtin.command: "head -c 16 /dev/urandom | od -An -t x | tr -d ' '"
+  register: command_output
+  changed_when: false
+
+- name: Set Bootstrap Token as a fact
+  ansible.builtin.set_fact:
+    bootstrap_token: "{{ command_output.stdout }}"
+
+- name: Copy encryption-config.yaml file
+  ansible.builtin.template:
+    src: encryption-config.yaml
+    dest: "{{ PKI_DIR }}/encryption-config.yaml"
+    mode: '0644'
+
+- name: Copy token.csv file
+  ansible.builtin.template:
+    src: token.csv
+    dest: "{{ PKI_DIR }}/token.csv"
+    mode: '0644'
+
+- name: Copy token.csv file to /var/lib/kubernetes/
+  ansible.builtin.copy:
+    src: "{{ PKI_DIR }}/token.csv"
+    dest: "/var/lib/kubernetes/token.csv"
+    mode: '0644'
+    remote_src: yes

@@ -1,15 +1,31 @@
 ---
-- hosts: apacheweb
-  user: test
-  sudo: yes
-  connection: ssh
-  gather_facts: no
+- name: File copy modules
+  hosts: all
   tasks:
-    - name: Copy from the files directory test file
+    - name: Copy file demo
       ansible.builtin.copy:
-        src: files/test4.txt
-        dest: /home/test/test4.txt
-        owner: test
-        group: test
-        mode: '0655'
-        backup: yes
+        src: /etc/hosts
+        dest: /tmp/
+
+    - name: Add some lines to /tmp/hosts
+      ansible.builtin.blockinfile:
+        path: /tmp/hosts
+        block: |
+          192.168.4.110 host1.example.com
+          192.168.4.120 host2.example.com
+        state: present
+
+    - name: Verify file checksum
+      ansible.builtin.stat:
+        path: /tmp/hosts
+        checksum_algorithm: md5
+      register: result
+
+    - name: Show checksum
+      ansible.builtin.debug:
+        msg: "The checksum of /tmp/hosts is {{ result.stat.checksum }}"
+
+    - name: Fetch a file
+      ansible.builtin.fetch:
+        src: /tmp/hosts
+        dest: /tmp/

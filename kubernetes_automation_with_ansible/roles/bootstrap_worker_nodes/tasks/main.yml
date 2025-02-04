@@ -1,0 +1,110 @@
+---
+# tasks file for k8s_workers
+
+- name: Create necessary directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /var/run/kubernetes
+    - /var/lib/kubelet
+    - /var/lib/kube-proxy
+    - /var/lib/kubernetes
+    - /opt/cni
+
+- name: Copy Kubernetes certificates to /var/lib/kubelet
+  ansible.builtin.copy:
+    src: "/vagrant/{{ item }}"
+    dest: "/var/lib/kubelet/{{ item }}"
+    mode: '0644'
+  loop:
+    - kubernetes.pem
+    - kubernetes-key.pem
+
+- name: Copy kubeconfig files to /var/lib/kubelet
+  ansible.builtin.copy:
+    src: "/kubeconfig/{{ item }}"
+    dest: "/var/lib/kubelet/{{ item }}"
+    mode: '0644'
+  loop:
+    - admin.kubeconfig
+
+- name: Copy kubeconfig files to /var/lib/kube-proxy
+  ansible.builtin.copy:
+    src: "/kubeconfig/{{ item }}"
+    dest: "/var/lib/kube-proxy/{{ item }}"
+    mode: '0644'
+  loop:
+    - kube-proxy.kubeconfig
+
+- name: Download and Install Docker
+  ansible.builtin.unarchive:
+    src: "https://get.docker.com/builds/Linux/x86_64/docker-1.12.6.tgz"
+    dest: /tmp
+    remote_src: yes
+    mode: '0755'
+    validate_certs: no
+
+- name: Copy Docker binaries to /usr/local/bin/
+  ansible.builtin.copy:
+    src: "/tmp/docker/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    mode: '0755'
+    remote_src: yes
+  loop:
+    - docker
+    - dockerd
+    - containerd
+    - runc
+
+- name: Deploy Docker systemd service
+  ansible.builtin.template:
+    src: docker.service
+    dest: /etc/systemd/system/docker.service
+    mode: '0644'
+
+- name: Start and enable Docker service
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    daemon_reload: yes
+    enabled: yes
+
+- name: Download and Install Kubernetes binaries
+  ansible.builtin.get_url:
+    url: "https://storage.googleapis.com/kubernetes-release/release/{{ k8s_version }}/bin/linux/amd64/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    mode: '0755'
+    validate_certs: no
+  loop:
+    - kubelet
+    - kube-proxy
+    - kubectl
+
+- name: Download CNI plugins
+  ansible.builtin.unarchive:
+    src: "https://storage.googleapis.com/kubernetes-release/network-plugins/cni-amd64-0799f5732f2a11b329d9e3d51b9c8f2e3759f2ff.tar.gz"
+    dest: /tmp
+    remote_src: yes
+    mode: '0755'
+    validate_certs: no
+
+- name: Deploy kubelet and kube-proxy systemd services
+  ansible.builtin.template:
+    src: "{{ item }}.service"
+    dest: "/etc/systemd/system/{{ item }}.service"
+    mode: '0644'
+  loop:
+    - kubelet
+    - kube-proxy
+
+- name: Start and enable kubelet and kube-proxy services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+    daemon_reload: yes
+    enabled: yes
+  loop:
+    - kubelet
+    - kube-proxy

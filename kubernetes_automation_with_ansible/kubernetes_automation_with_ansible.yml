@@ -1,0 +1,11 @@
+---
+
+- import_playbook: step2_configure_loadbalancer.yml
+- import_playbook: step3_install_client_tools.yml
+- import_playbook: step4_generate_certificates.yml
+- import_playbook: step5_generate_kubeconfig.yml
+- import_playbook: step6_generate_data_encryption_key.yml
+- import_playbook: step7_distribute_all_certificates_to_allnodes.yml
+- import_playbook: step8_bootstrap_etcd_cluster.yml
+- import_playbook: step9_bootstrap_kuberenetes_control_plane.yml
+- import_playbook: step10_bootstrap_worker_nodes.yml

@@ -1,0 +1,34 @@
+---
+- name: Ensure database server is running
+  hosts: lamp_prod
+  gather_facts: true  # Required to check OS distribution and version
+  vars:
+    database_packages:
+      - mariadb-server
+      - python3-PyMySQL
+
+  tasks: 
+    - name: Install MariaDB packages
+      yum:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ database_packages }}"
+      when: 
+        - ansible_distribution in ['RedHat', 'CentOS', 'Rocky', 'AlmaLinux']
+        - ansible_distribution_major_version == "8"
+
+    - name: Start and enable MariaDB service
+      service: 
+        name: mariadb
+        state: started
+        enabled: true
+      notify:
+        - Set database root password
+
+  handlers:
+    - name: Set database root password
+      community.mysql.mysql_user:
+        name: root
+        password: "securepassword"
+        login_unix_socket: /var/lib/mysql/mysql.sock
+        state: present

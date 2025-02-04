@@ -1,0 +1,9 @@
+- name: Download and Install kubectl
+  ansible.builtin.get_url:
+    url: "https://storage.googleapis.com/kubernetes-release/release/{{ k8s_version }}/bin/linux/amd64/kubectl"
+    dest: /usr/local/bin/kubectl
+    mode: '0755'
+    force: true
+    owner: root
+    group: root
+    validate_certs: false

@@ -1,0 +1,12 @@
+---
+- name: Demonstrate changed status
+  hosts: all
+  tasks:
+    - name: Check local time
+      command: date
+      register: command_result
+      changed_when: false  # Ensures Ansible doesn't mark this task as "changed"
+
+    - name: Print local time
+      debug:
+        var: command_result.stdout
