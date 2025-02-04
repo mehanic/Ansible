@@ -1,0 +1,13 @@
+---
+- name: show me an encrypted var
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - a_vars_file.yaml  # This file should be an encrypted file (e.g., with Ansible Vault)
+
+  tasks:
+    - name: print the variable
+      debug:
+        var: something
+      no_log: true  # Ensures sensitive data is not displayed in the logs

@@ -1,0 +1,27 @@
+---
+- name: Add a keypair to nova
+  hosts: localhost
+  gather_facts: false
+  vars:
+    cloud_name: "my-cloud"  # Specify the name of the cloud you are connecting to
+    keypair_name: "admin-key"  # Name of the keypair to be created
+    keypair_path: "/path/to/public/key"  # Path to the public key file to be used
+
+  tasks:
+    - name: Create OpenStack keypair
+      os_keypair:
+        cloud: "{{ cloud_name }}"  # Use the variable cloud_name
+        name: "{{ keypair_name }}"  # Use the variable keypair_name
+        public_key: "{{ keypair_path }}"  # Specify the public key file
+        wait: yes  # Wait for the operation to complete
+      register: keypair_creation  # Register the result of the task for later use
+
+    - name: Display keypair creation result
+      debug:
+        msg: "Keypair '{{ keypair_name }}' created successfully in cloud '{{ cloud_name }}'."
+      when: keypair_creation.changed  # Only show the message if the keypair was created
+
+    - name: Handle failure if keypair creation fails
+      debug:
+        msg: "Failed to create keypair '{{ keypair_name }}' in cloud '{{ cloud_name }}'."
+      when: not keypair_creation.changed  # If keypair was not created successfully

@@ -1,0 +1,9 @@
+clouds:
+  my-cloud:
+    auth:
+      auth_url: "https://openstack.example.com/v3"
+      username: "admin"
+      password: "password"
+      project_name: "myproject"
+      user_domain_name: "Default"
+      project_domain_name: "Default"
