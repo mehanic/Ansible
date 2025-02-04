@@ -1,0 +1,23 @@
+---
+- name: Check for existence of devices
+  hosts: all
+  tasks:
+    - name: Check if /dev/sda exists
+      ansible.builtin.debug:
+        msg: "A disk device /dev/sda exists"
+      when: ansible_facts['devices']['sda'] is defined
+
+    - name: Check if /dev/sdb exists
+      ansible.builtin.debug:
+        msg: "A disk device /dev/sdb exists"
+      when: ansible_facts['devices']['sdb'] is defined
+
+    - name: Dummy test, intended to fail
+      ansible.builtin.debug:
+        msg: "Failing"
+      when: dummy is defined
+
+    - name: Check if /dev/sdc does not exist
+      ansible.builtin.debug:
+        msg: "There is no /dev/sdc device"
+      when: ansible_facts['devices']['sdc'] is not defined

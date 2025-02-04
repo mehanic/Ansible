@@ -1,0 +1,13 @@
+---
+- name: Install vsftpd on servers that have custom fact set to "type=production"
+  hosts: all
+  tasks:
+    - name: Set fact
+      ansible.builtin.set_fact:
+        is_production: "{{ ansible_local[inventory_hostname_short][inventory_hostname_short].type == 'production' }}"
+
+    - name: Install vsftpd if type is production on local_fact
+      ansible.builtin.package:
+        name: vsftpd
+        state: present
+      when: is_production

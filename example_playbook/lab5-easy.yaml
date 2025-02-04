@@ -1,0 +1,22 @@
+---
+- name: Play1
+  hosts: ansible1.example.com
+  tasks:
+    - name: File task
+      ansible.builtin.file:
+        path: /etc/ansible/facts.d
+        state: directory
+
+    - name: Copy task
+      ansible.builtin.copy:
+        src: prod.fact
+        dest: /etc/ansible/facts.d/
+
+- name: Play2
+  hosts: all
+  tasks:
+    - name: Yum task
+      ansible.builtin.yum:
+        name: vsftpd
+        state: present
+      when: ansible_facts.ansible_local.prod.prod.type == "production"

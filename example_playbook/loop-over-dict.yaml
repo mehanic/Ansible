@@ -1,0 +1,10 @@
+---
+- name: Loop over dict
+  hosts: localhost
+  vars_files:
+    - vars/users-dictionary.yml
+  tasks:
+    - name: Print stuff
+      ansible.builtin.debug:
+        msg: "User {{ item.key }} is {{ item.value.username }} and has {{ item.value.shell }}"
+      ansible.builtin.loop: "{{ users }}"

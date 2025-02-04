@@ -1,0 +1,16 @@
+---
+- name: Use debug to check package facts
+  hosts: ansible2.example.com
+  tasks:
+    - name: Get information about packages
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: List installed packages
+      ansible.builtin.debug:
+        var: ansible_facts.packages
+
+    - name: Show Bash version
+      ansible.builtin.debug:
+        msg: "Version {{ ansible_facts.packages['bash'][0].version }}"
+      when: "'bash' in ansible_facts.packages"
