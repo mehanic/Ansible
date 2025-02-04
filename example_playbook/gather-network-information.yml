@@ -1,0 +1,37 @@
+---
+- hosts: localhost
+  tasks:
+    - name: site | hello world
+      ansible.builtin.shell: echo "Hi! Ansible is working"
+
+    - name: AnsibleUnsafeText
+      ansible.builtin.debug: 
+        var: ansible_facts['distribution'] | type_debug 
+
+    - name: dict
+      ansible.builtin.debug:
+        var: ansible_facts['eth0']['ipv4'] | type_debug
+
+    - name: List
+      ansible.builtin.debug:
+        var: ansible_facts['eth0']['ipv6'] | type_debug
+
+    - name: Applying filter
+      ansible.builtin.setup:
+        filter:
+          - 'ansible_distribution'
+          - 'ansible_eth[0-3]'
+
+    - name: Using subsets
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+          - 'network'
+
+    - name: Gather ansible version
+      ansible.builtin.command: ansible --version
+      register: ansible_version
+
+    - name: Display the info you have gathered
+      ansible.builtin.debug: 
+        var: ansible_version

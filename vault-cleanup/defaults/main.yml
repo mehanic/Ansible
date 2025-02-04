@@ -1,6 +1,0 @@
----
-
-tenant: ""
-vault_conf_path: /etc/vault.d
-
-gcp_regions: []
