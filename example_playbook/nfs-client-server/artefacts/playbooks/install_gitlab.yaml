@@ -1,0 +1,67 @@
+---
+- name: Install GitLab CE
+  hosts: gitlab
+  become: true
+
+  tasks:
+    - name: Ensure required packages are installed
+      ansible.builtin.apt:
+        name:
+          - postfix
+          - mailutils
+          - ca-certificates
+          - curl
+          - openssh-server
+        state: present
+        update_cache: yes
+      when: ansible_os_family == 'Debian'
+      tags: postfix
+
+    - name: Download GitLab repository install script
+      ansible.builtin.get_url:
+        url: https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.deb.sh
+        dest: /tmp/script.deb.sh
+        mode: '0755'
+
+    - name: Execute GitLab repository script
+      ansible.builtin.command:
+        cmd: bash /tmp/script.deb.sh
+        creates: /etc/apt/sources.list.d/gitlab_gitlab-ce.list
+
+    - name: Install GitLab CE package
+      ansible.builtin.apt:
+        name: gitlab-ce
+        state: latest
+        update_cache: yes
+
+    - name: Allow HTTP traffic in firewall
+      ansible.builtin.ufw:
+        rule: allow
+        port: '80'
+        proto: tcp
+
+    - name: Allow HTTPS traffic in firewall
+      ansible.builtin.ufw:
+        rule: allow
+        port: '443'
+        proto: tcp
+
+    - name: Allow OpenSSH traffic in firewall
+      ansible.builtin.ufw:
+        rule: allow
+        name: OpenSSH
+
+    - name: Reconfigure GitLab
+      ansible.builtin.command:
+        cmd: gitlab-ctl reconfigure
+      changed_when: false
+
+    - name: Restart GitLab services
+      ansible.builtin.command:
+        cmd: gitlab-ctl restart
+      changed_when: false
+
+    - name: Check GitLab service status
+      ansible.builtin.command:
+        cmd: service gitlab-runsvdir status
+      changed_when: false

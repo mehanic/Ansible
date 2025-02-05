@@ -1,0 +1,59 @@
+---
+- name: Installing NFS Server
+  hosts: nfs-server
+  become: true
+
+  vars:
+    mountable_share_drive: "/dev/sda1"
+    nfsexport: "/share"
+    src_exports: "~/artefacts/templates/exports.j2"
+
+  tasks:
+    - name: Create mountable directory
+      ansible.builtin.file:
+        path: "{{ nfsexport }}"
+        state: directory
+        mode: '0777'
+        owner: root
+        group: root
+      tags: nfs_server
+
+    - name: Ensure the mount drive has a filesystem
+      community.general.filesystem:
+        fstype: ext4
+        dev: "{{ mountable_share_drive | default('/dev/sda1') }}"
+      tags: nfs_server
+
+    - name: Set mount points
+      ansible.builtin.mount:
+        name: "{{ nfsexport }}"
+        src: "{{ mountable_share_drive | default('/dev/sda1') }}"
+        fstype: auto
+        opts: defaults,nobootwait
+        dump: 0
+        passno: 2
+        state: mounted
+      tags: nfs_server
+
+    - name: Ensure NFS utilities are installed
+      ansible.builtin.apt:
+        name:
+          - nfs-common
+          - nfs-kernel-server
+        state: present
+        update_cache: yes
+      tags: nfs_server
+
+    - name: Copy /etc/exports
+      ansible.builtin.template:
+        src: "{{ src_exports }}"
+        dest: "/etc/exports"
+        owner: root
+        group: root
+      tags: nfs_server
+
+    - name: Restart NFS server
+      ansible.builtin.service:
+        name: nfs-kernel-server
+        state: restarted
+      tags: nfs_server

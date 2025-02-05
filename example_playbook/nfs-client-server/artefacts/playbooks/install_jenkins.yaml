@@ -1,0 +1,43 @@
+---
+- name: Install Jenkins
+  hosts: jenkins
+  gather_facts: false
+  become: true
+
+  tasks:
+    - name: Ensure the Jenkins APT repository key is installed
+      ansible.builtin.apt_key:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+        state: present
+
+    - name: Ensure the repository is configured
+      ansible.builtin.apt_repository:
+        repo: deb https://pkg.jenkins.io/debian-stable binary/
+        state: present
+        filename: jenkins
+
+    - name: Install Jenkins
+      ansible.builtin.apt:
+        name: jenkins
+        state: present
+        update_cache: yes
+
+    - name: Start & Enable Jenkins
+      ansible.builtin.service:
+        name: jenkins
+        state: started
+        enabled: yes
+
+    - name: Wait for Jenkins service to stabilize
+      ansible.builtin.wait_for:
+        port: 8080
+        timeout: 30
+
+    - name: Get Jenkins initial admin password
+      ansible.builtin.shell: cat /var/lib/jenkins/secrets/initialAdminPassword
+      changed_when: false
+      register: jenkins_password
+
+    - name: Display Jenkins initial admin password
+      ansible.builtin.debug:
+        msg: "Jenkins initial admin password: {{ jenkins_password.stdout }}"
