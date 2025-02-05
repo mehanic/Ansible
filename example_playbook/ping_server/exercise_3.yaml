@@ -1,0 +1,5 @@
+- name: "Play with variables & Jinja2 templating"
+  hosts: all
+  tasks:
+  - name: "Template an existing file with variables"
+    template: src=templates/hello.txt dest=~/
