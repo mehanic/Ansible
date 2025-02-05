@@ -6,7 +6,7 @@
   tasks: 
   - block: 
       - name: delete branch bad 
-        command: git branch -D badfeature 
+        ansible.builtin.command: git branch -D badfeature 
         args: 
           chdir: /srv/app 
  
