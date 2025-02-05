@@ -1,0 +1,20 @@
+---
+- name: demo the filters
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: fail a task
+      debug:
+        msg: "I am not a change"
+      register: derp
+      failed_when: false  # Ensures that the task doesn't fail, so subsequent tasks run
+
+    - name: only do this on change
+      debug:
+        msg: "You had a change"
+      when: derp is changed
+
+    - name: only do this on success
+      debug:
+        msg: "You had a success"
+      when: derp is success
