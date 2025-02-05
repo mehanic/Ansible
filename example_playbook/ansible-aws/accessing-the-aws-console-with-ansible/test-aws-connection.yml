@@ -1,0 +1,18 @@
+---
+- name: Connect to AWS environment
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - /home/ansible/keys.yml
+
+  tasks:
+    - name: Get EC2 instance list
+      amazon.aws.ec2_instance_info:
+        aws_access_key: "{{ AWS_ACCESS_KEY_ID }}"
+        aws_secret_key: "{{ AWS_SECRET_ACCESS_KEY }}"
+        region: "{{ AWS_REGION }}"
+      register: output
+
+    - name: Display instance list
+      debug:
+        var: output.instances

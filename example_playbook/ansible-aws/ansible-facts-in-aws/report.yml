@@ -1,0 +1,7 @@
+
+--- # Ansible Facts in AWS Lab
+- hosts: localhost
+  gather_facts: no
+  vars_files:
+    - /home/ansible/keys.yml
+  tasks:

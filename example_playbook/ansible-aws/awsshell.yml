@@ -1,0 +1,17 @@
+---
+# AWS EC2 Instance Communication Shell Command Example (Ansible 2.17)
+- hosts: aws
+  remote_user: ec2-user
+  become: yes
+  become_method: sudo
+  gather_facts: yes
+  connection: ssh
+
+  tasks:
+    - name: Execute a Shell Command for Listing the Directory
+      ansible.builtin.shell: ls -al ~
+      register: result
+
+    - name: Display the results in JSON format
+      ansible.builtin.debug:
+        var: result
